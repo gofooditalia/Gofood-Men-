@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { createClient } from '@/lib/supabase/server';
 
 // Initialize OpenAI client with OpenRouter configuration
 const openai = new OpenAI({
@@ -13,6 +14,13 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
     try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return new NextResponse('Unauthorized', { status: 401 });
+        }
+
         const body = await req.json();
         const { dishes } = body;
 
