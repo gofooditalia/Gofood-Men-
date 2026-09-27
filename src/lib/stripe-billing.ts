@@ -97,3 +97,23 @@ export async function getStripeCustomerId(tenantId: string): Promise<string | nu
     });
     return customerId;
 }
+
+/**
+ * Saved Stripe customer to reuse at checkout, so a tenant that subscribes again
+ * doesn't get a new duplicate customer. Null if none saved or it was deleted in Stripe.
+ */
+export async function getReusableCustomerId(tenantId: string): Promise<string | null> {
+    const { data } = await getSupabaseAdmin()
+        .from('tenant_billing')
+        .select('stripe_customer_id')
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+    if (!data?.stripe_customer_id) return null;
+
+    try {
+        const customer = await stripe.customers.retrieve(data.stripe_customer_id);
+        return customer.deleted ? null : customer.id;
+    } catch {
+        return null;
+    }
+}

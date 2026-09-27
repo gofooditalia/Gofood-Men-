@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseServerClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe';
+import { getReusableCustomerId } from '@/lib/stripe-billing';
 import { createClient } from '@supabase/supabase-js';
 
 export async function POST(req: NextRequest) {
@@ -84,7 +85,9 @@ export async function POST(req: NextRequest) {
             return new NextResponse('Server configuration error', { status: 500 });
         }
 
-        // 3. Create Checkout Session
+        // 3. Create Checkout Session (reusing the tenant's Stripe customer if it has one)
+        const existingCustomerId = await getReusableCustomerId(tenant.id);
+
         const session = await stripe.checkout.sessions.create({
             mode: 'subscription',
             payment_method_types: ['card'],
@@ -106,7 +109,9 @@ export async function POST(req: NextRequest) {
                     userId: user.id
                 }
             },
-            customer_email: user.email || undefined, // Pre-fill email
+            ...(existingCustomerId
+                ? { customer: existingCustomerId }
+                : { customer_email: user.email || undefined }), // Pre-fill email for new customers
             success_url: `${returnUrl || req.headers.get('origin')}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}&new_slug=${finalSlug}`,
             cancel_url: `${returnUrl || req.headers.get('origin')}/dashboard?payment=canceled`,
             allow_promotion_codes: true,
