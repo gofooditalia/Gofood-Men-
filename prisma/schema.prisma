@@ -415,7 +415,6 @@ model allergens {
   @@schema("public")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model categories {
@@ -440,7 +439,6 @@ model categories {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model dishes {
   id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tenant_id      String     @db.Uuid
@@ -455,14 +453,14 @@ model dishes {
   is_vegetarian  Boolean    @default(false)
   is_vegan       Boolean    @default(false)
   display_order  Int        @default(0)
-  is_homemade    Boolean    @default(false)
-  is_frozen      Boolean    @default(false)
   created_at     DateTime   @default(now()) @db.Timestamptz(6)
   updated_at     DateTime   @default(now()) @db.Timestamptz(6)
   name           String?
   description    String?
   allergen_ids   String[]   @default([])
-  ai_data        Json?      @db.JsonB
+  is_homemade    Boolean?   @default(false)
+  is_frozen      Boolean?   @default(false)
+  ai_data        Json?
   categories     categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   tenants        tenants    @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -471,6 +469,7 @@ model dishes {
   @@index([tenant_id, category_id], map: "idx_dishes_tenant_category")
   @@index([tenant_id, category_id, display_order], map: "idx_dishes_tenant_category_order")
   @@index([tenant_id], map: "idx_dishes_tenant_id")
+  /// Partial index in DB: idx_dishes_visible ON (tenant_id, is_visible) WHERE is_visible = true
   @@schema("public")
 }
 
@@ -480,7 +479,6 @@ model profiles {
   id         String    @id @db.Uuid
   email      String    @unique
   full_name  String?
-  avatar_url String?
   created_at DateTime  @default(now()) @db.Timestamptz(6)
   updated_at DateTime  @default(now()) @db.Timestamptz(6)
   users      users     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -496,29 +494,25 @@ model tenants {
   id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   owner_id               String                  @db.Uuid
   restaurant_name        String
-  slug                   String                  @unique
-  // contact_email removed
+  slug                   String?                 @unique
+  contact_email          String?
   country                String?                 @default("IT")
   currency               String                  @default("EUR")
   cover_charge           Decimal?                @default(2.50) @db.Decimal(10, 2)
   subscription_tier      String                  @default("free")
   subscription_status    String                  @default("active")
-
   onboarding_completed   Boolean                 @default(false)
   onboarding_step        Int?                    @default(1)
   created_at             DateTime                @default(now()) @db.Timestamptz(6)
   updated_at             DateTime                @default(now()) @db.Timestamptz(6)
   footer_data            Json?
-  tagline                String?
   logo_url               String?
-  background_color       String?                 @default("#FFF8E7")
-  primary_color          String?                 @default("#8B0000")
-  secondary_color        String?                 @default("#D4AF37")
-  secondary_text_color   String?                 @default("#4B5563")
-  surface_color          String?                 @default("#FFFFFF")
-  text_color             String?                 @default("#171717")
   categories             categories[]
   dishes                 dishes[]
+  reservation_settings   reservation_settings?
+  reservation_shifts     reservation_shifts[]
+  reservation_tables     reservation_tables[]
+  reservations           reservations[]
   tenant_design_settings tenant_design_settings?
   tenant_locations       tenant_locations[]
   profiles               profiles                @relation(fields: [owner_id], references: [id], onUpdate: NoAction)
@@ -554,6 +548,83 @@ model tenant_design_settings {
   updated_at   DateTime @default(now()) @db.Timestamptz(6)
   tenants      tenants  @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reservation_settings {
+  tenant_id         String   @id @db.Uuid
+  is_active         Boolean? @default(false)
+  total_seats       Int?     @default(0)
+  total_high_chairs Int?     @default(0)
+  created_at        DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at        DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  tenants           tenants  @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reservation_tables {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id               String                    @db.Uuid
+  name                    String
+  seats                   Int                       @default(2)
+  display_order           Int?                      @default(0)
+  is_active               Boolean?                  @default(true)
+  created_at              DateTime                  @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  reservation_assignments reservation_assignments[]
+  tenants                 tenants                   @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reservation_shifts {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id    String   @db.Uuid
+  name         String
+  start_time   DateTime @db.Time(6)
+  end_time     DateTime @db.Time(6)
+  days_of_week Int[]    @default([0, 1, 2, 3, 4, 5, 6])
+  is_active    Boolean? @default(true)
+  created_at   DateTime @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  tenants      tenants  @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reservations {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id               String                    @db.Uuid
+  customer_name           String
+  customer_email          String
+  customer_phone          String
+  guests                  Int
+  high_chairs             Int?                      @default(0)
+  reservation_date        DateTime                  @db.Date
+  reservation_time        DateTime                  @db.Time(6)
+  status                  String?                   @default("pending")
+  notes                   String?
+  created_at              DateTime                  @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  updated_at              DateTime                  @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  reservation_assignments reservation_assignments[]
+  tenants                 tenants                   @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model reservation_assignments {
+  reservation_id     String             @db.Uuid
+  table_id           String             @db.Uuid
+  assigned_at        DateTime           @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
+  reservations       reservations       @relation(fields: [reservation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reservation_tables reservation_tables @relation(fields: [table_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([reservation_id, table_id])
   @@schema("public")
 }
 

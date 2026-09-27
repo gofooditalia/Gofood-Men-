@@ -8,7 +8,8 @@ import ActivationModal from '@/components/dashboard/ActivationModal';
 import { toast } from 'sonner';
 
 import MenuImportModal from '@/components/dashboard/MenuImportModal';
-import { useTenant, useUpdateTenant } from '@/hooks/useTenant';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTenant } from '@/hooks/useTenant';
 import { useCategories, useDishes } from '@/hooks/useMenu';
 
 interface Stats {
@@ -23,7 +24,7 @@ export default function DashboardOverview() {
   const hasHandledPayment = useRef(false);
 
   const { data: tenant, isLoading: isTenantLoading } = useTenant();
-  const { mutateAsync: updateTenant } = useUpdateTenant();
+  const queryClient = useQueryClient();
 
   // Fetch categories and dishes using hooks - cached and efficient
   const { data: categories = [], isLoading: isCategoriesLoading } = useCategories(tenant?.id);
@@ -43,51 +44,34 @@ export default function DashboardOverview() {
     };
   }, [categories, dishes]);
 
-  // Handle payment success from Stripe
+  // Handle payment success from Stripe.
+  // Activation (tier, status, slug) is done server-side by the Stripe webhook;
+  // here we only refetch the tenant until the webhook has landed.
+  const [awaitingActivation, setAwaitingActivation] = useState(false);
+
   useEffect(() => {
-    if (searchParams.get('payment') === 'success' && tenant && !hasHandledPayment.current) {
-      const activateSubscription = async () => {
-        try {
-          console.log('Payment successful! Activating subscription...');
-          const newSlug = searchParams.get('new_slug');
-
-          const updateData: any = {
-            subscription_status: 'active',
-            subscription_tier: 'premium'
-          };
-
-          if (newSlug) {
-            updateData.slug = newSlug;
-          }
-
-          await updateTenant({
-            id: tenant.id,
-            updates: updateData
-          });
-
-          // Custom toast and reload handled below, suppressing hook success toast in mind or letting it be
-          // Actually hook has toast too. 
-          toast.success('Abbonamento attivato con successo!');
-
-          // Clean URL immediately to prevent loop
-          const newUrl = window.location.pathname;
-          window.history.replaceState({}, '', newUrl);
-
-          // Mark payment as handled
-          hasHandledPayment.current = true;
-
-          // Force hard refresh removed as per user request
-          // window.location.reload();
-
-        } catch (err) {
-          console.error('Error activating subscription:', err);
-          toast.error('Errore durante l\'attivazione. Contatta l\'assistenza se persiste.');
-        }
-      };
-
-      activateSubscription();
+    if (searchParams.get('payment') === 'success' && !hasHandledPayment.current) {
+      hasHandledPayment.current = true;
+      toast.success('Pagamento ricevuto! Stiamo attivando il tuo abbonamento...');
+      window.history.replaceState({}, '', window.location.pathname);
+      setAwaitingActivation(true);
     }
-  }, [searchParams, tenant, updateTenant]);
+  }, [searchParams]);
+
+  const isActivated = tenant?.subscription_tier === 'premium';
+
+  useEffect(() => {
+    if (!awaitingActivation || isActivated) return;
+    let attempts = 0;
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['tenant'] });
+      if (++attempts >= 10) {
+        clearInterval(interval);
+        setAwaitingActivation(false);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [awaitingActivation, isActivated, queryClient]);
 
   if (loading) {
     return (

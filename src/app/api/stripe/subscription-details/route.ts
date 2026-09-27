@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe';
+import { getStripeCustomerId, getTenantIdForOwner } from '@/lib/stripe-billing';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,21 +10,17 @@ export async function GET(req: NextRequest) {
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
-        if (!user || !user.email) {
+        if (!user) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        // 1. Find Stripe Customer by Email
-        const customers = await stripe.customers.list({
-            email: user.email,
-            limit: 1,
-        });
+        // 1. Resolve the tenant's saved Stripe customer
+        const tenantId = await getTenantIdForOwner(user.id);
+        const customerId = tenantId ? await getStripeCustomerId(tenantId) : null;
 
-        if (customers.data.length === 0) {
+        if (!customerId) {
             return NextResponse.json({ subscription: null });
         }
-
-        const customerId = customers.data[0].id;
 
         // 2. List Active Subscriptions
         const subscriptions = await stripe.subscriptions.list({

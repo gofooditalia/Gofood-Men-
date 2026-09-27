@@ -3,6 +3,19 @@ import { headers } from 'next/headers';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
+import { findTenantIdBySubscription, saveTenantBilling } from '@/lib/stripe-billing';
+
+// Stripe subscription statuses -> values allowed by tenants_subscription_status_check
+const SUBSCRIPTION_STATUS_MAP: Record<string, string> = {
+    active: 'active',
+    trialing: 'trialing',
+    past_due: 'past_due',
+    unpaid: 'past_due',
+    incomplete: 'incomplete',
+    incomplete_expired: 'cancelled',
+    canceled: 'cancelled',
+    paused: 'suspended',
+};
 
 // Initialize Supabase with Service Role Key to bypass RLS
 const supabaseAdmin = createClient<Database>(
@@ -76,6 +89,11 @@ export async function POST(req: NextRequest) {
                         console.error('[STRIPE_WEBHOOK] DB Error:', error);
                         throw error;
                     }
+
+                    await saveTenantBilling(tenantId, {
+                        stripeCustomerId,
+                        stripeSubscriptionId,
+                    });
                 }
                 break;
             }
@@ -83,7 +101,8 @@ export async function POST(req: NextRequest) {
             case 'customer.subscription.deleted': {
                 // Subscription cancelled/deleted
                 const subscription = event.data.object;
-                const tenantId = subscription.metadata?.tenantId;
+                const tenantId = subscription.metadata?.tenantId
+                    ?? await findTenantIdBySubscription(subscription.id);
 
                 if (tenantId) {
                     console.log(`[STRIPE_WEBHOOK] Deactivating tenant ${tenantId}`);
@@ -101,9 +120,7 @@ export async function POST(req: NextRequest) {
                     }
                     console.log(`[STRIPE_WEBHOOK] Successfully deactivated tenant ${tenantId}`);
                 } else {
-                    // Fallback: try to find by stripe_subscription_id if we implemented it, 
-                    // but relying on metadata for now.
-                    console.warn('[STRIPE_WEBHOOK] No tenantId in subscription metadata for deletion event');
+                    console.warn('[STRIPE_WEBHOOK] No tenant found for deleted subscription', subscription.id);
                 }
                 break;
             }
@@ -111,16 +128,24 @@ export async function POST(req: NextRequest) {
             case 'customer.subscription.updated': {
                 // Handle renewal issues, past_due, etc.
                 const subscription = event.data.object;
-                const tenantId = subscription.metadata?.tenantId;
-                const status = subscription.status; // active, past_due, unpaid, canceled
+                const tenantId = subscription.metadata?.tenantId
+                    ?? await findTenantIdBySubscription(subscription.id);
+                const status = SUBSCRIPTION_STATUS_MAP[subscription.status];
 
-                if (tenantId) {
+                if (tenantId && status) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    await (supabaseAdmin.from('tenants') as any)
+                    const { error } = await (supabaseAdmin.from('tenants') as any)
                         .update({
                             subscription_status: status
                         })
                         .eq('id', tenantId);
+
+                    if (error) {
+                        console.error('[STRIPE_WEBHOOK] DB Error (updated):', error);
+                        throw error;
+                    }
+                } else if (!status) {
+                    console.warn(`[STRIPE_WEBHOOK] Unmapped subscription status: ${subscription.status}`);
                 }
                 break;
             }
