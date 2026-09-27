@@ -248,6 +248,16 @@ export default function LandingPage() {
                 />
               </div>
             </Link>
+            <Link href="/spaghetteria-da-emanuele#antipasti" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:-rotate-2 filter hover:drop-shadow-lg cursor-pointer">
+              <div className="relative w-24 h-24 md:w-32 md:h-32">
+                <Image
+                  src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/logos/13be821f-383f-4f6a-90aa-4ab14df192a7/logo-1768242526744.jpg"
+                  alt="Spaghetteria da Emanuele"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            </Link>
           </div>
         </div>
       </section>
