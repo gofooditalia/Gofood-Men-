@@ -42,6 +42,34 @@ export async function findTenantIdBySubscription(subscriptionId: string): Promis
     return data?.tenant_id ?? null;
 }
 
+const LIVE_STATUSES = ['active', 'trialing', 'past_due', 'unpaid'];
+
+async function searchTenantSubscriptions(tenantId: string) {
+    const result = await stripe.subscriptions.search({
+        query: `metadata['tenantId']:'${tenantId}'`,
+        limit: 10,
+    });
+    return result.data;
+}
+
+/**
+ * Whether a Stripe subscription event should change the tenant's state.
+ * A tenant can have stale subscriptions (e.g. a failed first checkout that
+ * later expires as incomplete_expired) - those must not touch the tenant.
+ */
+export async function isCurrentSubscription(tenantId: string, subscriptionId: string): Promise<boolean> {
+    const { data } = await getSupabaseAdmin()
+        .from('tenant_billing')
+        .select('stripe_subscription_id')
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+    if (data?.stripe_subscription_id) return data.stripe_subscription_id === subscriptionId;
+
+    // Legacy tenants (subscribed before tenant_billing): current unless another live one exists
+    const subscriptions = await searchTenantSubscriptions(tenantId);
+    return !subscriptions.some(sub => sub.id !== subscriptionId && LIVE_STATUSES.includes(sub.status));
+}
+
 /**
  * Stripe customer for a tenant. Uses the saved ID; for tenants that subscribed
  * before tenant_billing existed, falls back to the subscription's tenantId
@@ -55,11 +83,8 @@ export async function getStripeCustomerId(tenantId: string): Promise<string | nu
         .maybeSingle();
     if (data?.stripe_customer_id) return data.stripe_customer_id;
 
-    const result = await stripe.subscriptions.search({
-        query: `metadata['tenantId']:'${tenantId}'`,
-        limit: 1,
-    });
-    const subscription = result.data[0];
+    const subscriptions = await searchTenantSubscriptions(tenantId);
+    const subscription = subscriptions.find(sub => LIVE_STATUSES.includes(sub.status)) ?? subscriptions[0];
     if (!subscription) return null;
 
     const customerId = typeof subscription.customer === 'string'

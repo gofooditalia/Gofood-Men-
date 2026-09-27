@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
-import { findTenantIdBySubscription, saveTenantBilling } from '@/lib/stripe-billing';
+import { findTenantIdBySubscription, isCurrentSubscription, saveTenantBilling } from '@/lib/stripe-billing';
 import { revalidateMenuSlug } from '@/lib/revalidate-menu';
 
 // Stripe subscription statuses -> values allowed by tenants_subscription_status_check
@@ -106,7 +106,9 @@ export async function POST(req: NextRequest) {
                 const tenantId = subscription.metadata?.tenantId
                     ?? await findTenantIdBySubscription(subscription.id);
 
-                if (tenantId) {
+                if (tenantId && !(await isCurrentSubscription(tenantId, subscription.id))) {
+                    console.log(`[STRIPE_WEBHOOK] Ignoring deletion of stale subscription ${subscription.id} for tenant ${tenantId}`);
+                } else if (tenantId) {
                     console.log(`[STRIPE_WEBHOOK] Deactivating tenant ${tenantId}`);
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const { error } = await (supabaseAdmin.from('tenants') as any)
@@ -135,7 +137,9 @@ export async function POST(req: NextRequest) {
                     ?? await findTenantIdBySubscription(subscription.id);
                 const status = SUBSCRIPTION_STATUS_MAP[subscription.status];
 
-                if (tenantId && status) {
+                if (tenantId && !(await isCurrentSubscription(tenantId, subscription.id))) {
+                    console.log(`[STRIPE_WEBHOOK] Ignoring update of stale subscription ${subscription.id} for tenant ${tenantId}`);
+                } else if (tenantId && status) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const { error } = await (supabaseAdmin.from('tenants') as any)
                         .update({
