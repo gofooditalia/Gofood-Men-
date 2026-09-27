@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Tenant } from '@/types/menu';
 import { toast } from 'sonner';
+import { revalidatePublicMenu } from '@/app/actions/revalidate-menu';
 
 export interface TenantData extends Tenant {
     tenant_locations?: any[];
@@ -215,9 +216,10 @@ export function useUpdateTenant() {
                     });
             }
 
-            return true;
+            return { previousSlug: currentTenant.slug as string | null };
         },
-        onSuccess: () => {
+        onSuccess: ({ previousSlug }) => {
+            void revalidatePublicMenu(previousSlug);
             queryClient.invalidateQueries({ queryKey: ['tenant'] });
             toast.success('Dati salvati!');
         },

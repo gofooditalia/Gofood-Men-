@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { revalidatePublicMenu } from '@/app/actions/revalidate-menu';
 
 interface Dish {
     name: string;
@@ -55,6 +56,7 @@ export function useImportMenu() {
             return uniqueItems.length;
         },
         onSuccess: (count, variables) => {
+            void revalidatePublicMenu();
             // Invalidate queries to refresh dashboard stats
             queryClient.invalidateQueries({ queryKey: ['dishes', variables.tenantId] });
             queryClient.invalidateQueries({ queryKey: ['stats', variables.tenantId] }); // in case we have a stats query

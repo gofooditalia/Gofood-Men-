@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { findTenantIdBySubscription, saveTenantBilling } from '@/lib/stripe-billing';
+import { revalidateMenuSlug } from '@/lib/revalidate-menu';
 
 // Stripe subscription statuses -> values allowed by tenants_subscription_status_check
 const SUBSCRIPTION_STATUS_MAP: Record<string, string> = {
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest) {
                         stripeCustomerId,
                         stripeSubscriptionId,
                     });
+                    await revalidateTenantMenu(tenantId);
                 }
                 break;
             }
@@ -119,6 +121,7 @@ export async function POST(req: NextRequest) {
                         throw error;
                     }
                     console.log(`[STRIPE_WEBHOOK] Successfully deactivated tenant ${tenantId}`);
+                    await revalidateTenantMenu(tenantId);
                 } else {
                     console.warn('[STRIPE_WEBHOOK] No tenant found for deleted subscription', subscription.id);
                 }
@@ -144,6 +147,7 @@ export async function POST(req: NextRequest) {
                         console.error('[STRIPE_WEBHOOK] DB Error (updated):', error);
                         throw error;
                     }
+                    await revalidateTenantMenu(tenantId);
                 } else if (!status) {
                     console.warn(`[STRIPE_WEBHOOK] Unmapped subscription status: ${subscription.status}`);
                 }
@@ -156,4 +160,14 @@ export async function POST(req: NextRequest) {
     }
 
     return new NextResponse('Received', { status: 200 });
+}
+
+// Subscription changes decide whether the public menu is served (free tier = 404).
+async function revalidateTenantMenu(tenantId: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabaseAdmin.from('tenants') as any)
+        .select('slug')
+        .eq('id', tenantId)
+        .maybeSingle();
+    revalidateMenuSlug(data?.slug);
 }

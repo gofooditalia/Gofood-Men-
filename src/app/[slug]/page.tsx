@@ -8,9 +8,17 @@
  */
 
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 import type { Tenant } from '@/types/menu';
 import MenuPageClient from './MenuPageClient';
+
+// Cached per slug (ISR). Purged on every menu change via revalidatePublicMenu
+// (src/app/actions/revalidate-menu.ts); the time-based revalidate is only a safety net.
+export const revalidate = 86400;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -46,7 +54,7 @@ interface DbDishAllergen {
 
 // Fetch menu data dal database
 async function getMenuData(slug: string) {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   // 1. Fetch tenant
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -210,7 +218,7 @@ export default async function Page({ params }: PageProps) {
 // Metadata dinamici per SEO
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: tenant } = await (supabase.from('tenants') as any)

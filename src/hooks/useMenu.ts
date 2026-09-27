@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { revalidatePublicMenu } from '@/app/actions/revalidate-menu';
 
 // --- Types ---
 export interface Category {
@@ -126,6 +127,7 @@ export function useAddCategory() {
             return data;
         },
         onSuccess: (_, variables) => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['categories', variables.tenantId] });
             // Toast managed by component usually to show name
         }
@@ -145,6 +147,7 @@ export function useUpdateCategory() {
             if (error) throw error;
         },
         onSuccess: () => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['categories'] });
         }
     });
@@ -160,6 +163,7 @@ export function useDeleteCategory() {
             if (error) throw error;
         },
         onSuccess: () => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['categories'] }); // Invalidate all categories queries or specific if we passed tenantId
             // Since we might not have tenantId here easily without prop, we can invalidate all 'categories' keys. 
             // Ideally we pass tenantId to context or mutation variables.
@@ -180,6 +184,7 @@ export function useReorderCategories() {
             if (error) throw error;
         },
         onSuccess: () => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['categories'] });
         }
     });
@@ -197,6 +202,7 @@ export function useAddDish() {
             return data;
         },
         onSuccess: (_, variables) => {
+            void revalidatePublicMenu();
             if (variables.tenant_id) {
                 queryClient.invalidateQueries({ queryKey: ['dishes', variables.tenant_id] });
             }
@@ -214,6 +220,7 @@ export function useUpdateDish() {
             if (error) throw error;
         },
         onSuccess: () => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['dishes'] });
         }
     });
@@ -229,6 +236,7 @@ export function useDeleteDish() {
             if (error) throw error;
         },
         onSuccess: () => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['dishes'] });
         }
     });
@@ -245,6 +253,7 @@ export function useReorderDishes() {
             if (error) throw error;
         },
         onSuccess: () => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['dishes'] });
         }
     });
@@ -261,6 +270,7 @@ export function useBulkUpdateDishes() {
             if (error) throw error;
         },
         onSuccess: () => {
+            void revalidatePublicMenu();
             queryClient.invalidateQueries({ queryKey: ['dishes'] });
         }
     });

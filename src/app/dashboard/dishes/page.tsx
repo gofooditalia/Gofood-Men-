@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database';
 import MenuImportModal from '@/components/dashboard/MenuImportModal';
 import { toast } from 'sonner';
+import { revalidatePublicMenu } from '@/app/actions/revalidate-menu';
 import {
   DndContext,
   closestCenter,
@@ -353,6 +354,7 @@ export default function DishesPage() {
         .in('id', idsToDelete);
 
       if (error) throw error;
+      void revalidatePublicMenu();
 
       toast.success(`${selectedDishes.size} piatti eliminati`);
       setSelectedDishes(new Set());
@@ -614,6 +616,7 @@ export default function DishesPage() {
         .upsert(upsertData, { onConflict: 'id' });
 
       if (error) throw error;
+      void revalidatePublicMenu();
     } catch (err) {
       console.error('Error updating order:', err);
       toast.error('Errore nel salvataggio dell\'ordine');
@@ -716,6 +719,7 @@ export default function DishesPage() {
         if (error) throw error;
       }
 
+      void revalidatePublicMenu();
       resetForm();
       loadData();
     } catch (err) {
@@ -754,6 +758,7 @@ export default function DishesPage() {
       }
 
       if (error) throw error;
+      void revalidatePublicMenu();
       loadData();
     } catch (err) {
       console.error('Error deleting dish:', err);

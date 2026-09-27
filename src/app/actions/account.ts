@@ -3,6 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createServerClient } from '@/lib/supabase/server';
+import { revalidateMenuSlug } from '@/lib/revalidate-menu';
 import { revalidatePath } from 'next/cache';
 
 /**
@@ -89,7 +90,7 @@ export async function deleteAccount() {
         // 1. Fetch tenant info for storage cleanup
         const { data: tenant } = await supabaseAdmin
             .from('tenants')
-            .select('id, restaurant_name')
+            .select('id, restaurant_name, slug')
             .eq('owner_id', user.id)
             .single();
 
@@ -116,6 +117,7 @@ export async function deleteAccount() {
         }
 
         console.log(`[DELETE_ACCOUNT] Tenant data for user ${user.id} deleted successfully`);
+        revalidateMenuSlug(tenant?.slug);
 
         // 3. Delete user from auth.users
         const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(
@@ -170,7 +172,7 @@ export async function resetMenu() {
         // 1. Fetch tenant info
         const { data: tenant } = await supabaseAdmin
             .from('tenants')
-            .select('id, restaurant_name')
+            .select('id, restaurant_name, slug')
             .eq('owner_id', user.id)
             .single();
 
@@ -198,6 +200,7 @@ export async function resetMenu() {
         console.log(`[RESET_MENU] DB data cleared for tenant ${tenant.id}`);
 
         revalidatePath('/dashboard/dishes');
+        revalidateMenuSlug(tenant.slug);
         revalidatePath('/dashboard/categories');
 
         return { success: true };
