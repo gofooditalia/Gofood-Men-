@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
+import { SITE_URL } from '@/lib/site';
 
 // Initialize OpenAI client with OpenRouter configuration
 const openai = new OpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
     apiKey: process.env.OPENROUTER_API_KEY,
     defaultHeaders: {
-        'HTTP-Referer': 'https://gofood-menu.com',
+        'HTTP-Referer': SITE_URL,
         'X-Title': 'Gofood Menu',
     },
 });

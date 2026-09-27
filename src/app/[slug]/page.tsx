@@ -11,6 +11,7 @@ import { notFound } from 'next/navigation';
 import { createPublicClient } from '@/lib/supabase/public';
 import type { Tenant } from '@/types/menu';
 import MenuPageClient from './MenuPageClient';
+import { SITE_URL } from '@/lib/site';
 
 // Cached per slug (ISR). Purged on every menu change via revalidatePublicMenu
 // (src/app/actions/revalidate-menu.ts); the time-based revalidate is only a safety net.
@@ -189,7 +190,7 @@ export default async function Page({ params }: PageProps) {
             '@type': 'Restaurant',
             name: tenant.restaurant_name,
             image: tenant.logo_url,
-            url: `https://gofood-menu.com/${slug}`,
+            url: `${SITE_URL}/${slug}`,
             telephone: tenant.footer_data?.locations?.[0]?.phone,
             address: {
               '@type': 'PostalAddress',
@@ -198,10 +199,10 @@ export default async function Page({ params }: PageProps) {
               addressCountry: 'IT'
             },
             servesCuisine: 'Italian',
-            menu: `https://gofood-menu.com/${slug}`,
+            menu: `${SITE_URL}/${slug}`,
             potentialAction: {
               '@type': 'OrderAction',
-              target: `https://gofood-menu.com/${slug}`
+              target: `${SITE_URL}/${slug}`
             }
           })
         }}

@@ -6,6 +6,7 @@ import { QRCode } from 'react-qrcode-logo';
 // import { createClient } from '@/lib/supabase/client';
 import { useTenant } from '@/hooks/useTenant';
 import { toast } from 'sonner';
+import { SITE_URL } from '@/lib/site';
 
 interface QRCodeCardProps {
     slug: string | null;
@@ -34,13 +35,9 @@ export default function QRCodeCard({ slug, logoUrl, tenantId, isLocked }: QRCode
     const [logoDataUrl, setLogoDataUrl] = useState<string | undefined>(undefined);
 
     // UI state
-    const [fullUrl, setFullUrl] = useState(`https://gofood.it/${slug}`);
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setFullUrl(`${window.location.origin}/${slug}`);
-        }
-    }, [slug]);
+    // Always the canonical domain, never the host the dashboard was opened from
+    // (a QR generated from a preview/vercel.app URL would be printed with the wrong link)
+    const fullUrl = `${SITE_URL}/${slug}`;
 
     // No need for loadSettings useEffect anymore
 
@@ -120,7 +117,7 @@ export default function QRCodeCard({ slug, logoUrl, tenantId, isLocked }: QRCode
 
                 <div className="mb-3 transform group-hover:scale-105 transition-transform duration-300">
                     <QRCode
-                        value={fullUrl || 'https://gofood.it'}
+                        value={fullUrl}
                         size={100}
                         bgColor={bgColor}
                         fgColor={qrColor}
