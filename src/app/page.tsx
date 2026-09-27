@@ -239,12 +239,12 @@ export default function LandingPage() {
               </div>
             </Link>
             <Link href="/sunset-barcarello#antipasti" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:rotate-2 filter hover:drop-shadow-lg cursor-pointer">
-              <div className="relative w-24 h-24 md:w-32 md:h-32">
+              <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-900 p-4 md:p-5">
                 <Image
                   src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/logos/469bd103-0e3b-43e4-8fea-96e00e915a3b/logo-1789674334625.png"
                   alt="Sunset Barcarello"
                   fill
-                  className="object-contain"
+                  className="object-contain p-4 md:p-5"
                 />
               </div>
             </Link>
