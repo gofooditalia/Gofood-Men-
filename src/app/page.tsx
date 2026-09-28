@@ -156,8 +156,8 @@ export default function LandingPage() {
                   <div className="flex items-center gap-1 md:gap-2">
                     <span className="text-base md:text-2xl">🌍</span>
                     <div>
-                      <div className="text-[9px] md:text-xs font-bold text-gray-900">Bilingua</div>
-                      <div className="text-[9px] md:text-xs text-gray-600">IT + EN</div>
+                      <div className="text-[9px] md:text-xs font-bold text-gray-900">7 Lingue</div>
+                      <div className="text-[9px] md:text-xs text-gray-600">IT · EN · +5</div>
                     </div>
                   </div>
                 </div>
