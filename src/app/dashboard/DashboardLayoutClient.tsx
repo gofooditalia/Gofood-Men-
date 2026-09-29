@@ -195,7 +195,9 @@ export default function DashboardLayoutClient({
 
           {/* Page content */}
           <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-            {tenant.subscription_status === 'trialing' && <SubscriptionBanner />}
+            {tenant.subscription_status === 'trialing' && (
+              <SubscriptionBanner onActivate={() => setShowActivationModal(true)} />
+            )}
             {children}
           </main>
         </SidebarInset>
