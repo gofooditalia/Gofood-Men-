@@ -35,6 +35,9 @@ export default function LandingPage() {
 
             {/* Navigation */}
             <div className="flex items-center gap-3">
+              <Button asChild variant="ghost" className="hidden sm:inline-flex text-gray-700 hover:text-orange-600 hover:bg-orange-50 font-semibold">
+                <a href="#prezzi">Prezzi</a>
+              </Button>
               <Button asChild variant="ghost" className="text-gray-700 hover:text-orange-600 hover:bg-orange-50 font-semibold">
                 <Link href="/login">Accedi</Link>
               </Button>
@@ -415,6 +418,92 @@ export default function LandingPage() {
                 </Card>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="prezzi" className="py-20 md:py-28 bg-gradient-to-b from-white to-orange-50/60 scroll-mt-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-bold mb-6 border border-orange-200">
+              PREZZI CHIARI
+            </div>
+            <h2 className="font-display text-4xl md:text-5xl font-black text-gray-900 mb-6">
+              Un solo piano. Tutto incluso.
+            </h2>
+            <p className="text-xl text-gray-600">
+              Crei e personalizzi il tuo menu gratis. Paghi solo quando decidi di pubblicarlo.
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto grid md:grid-cols-5 gap-6 items-stretch">
+            {/* How it works */}
+            <div className="md:col-span-2 flex flex-col gap-4">
+              {[
+                { step: '1', title: 'Registrati gratis', text: 'Nessuna carta di credito per iniziare.' },
+                { step: '2', title: 'Costruisci il menu', text: 'Importa con l’AI da foto o PDF, aggiungi foto, allergeni e traduzioni.' },
+                { step: '3', title: 'Pubblica quando sei pronto', text: 'Attivi l’abbonamento e il tuo menu va online con il suo QR.' },
+              ].map((item) => (
+                <div key={item.step} className="flex items-start gap-4 bg-white rounded-2xl p-5 shadow-md border border-orange-100">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white font-black flex items-center justify-center flex-shrink-0">
+                    {item.step}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">{item.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{item.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Plan card */}
+            <div className="md:col-span-3 relative bg-white rounded-3xl p-8 md:p-10 shadow-2xl border-2 border-orange-400">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+                  TUTTO INCLUSO
+                </span>
+              </div>
+
+              <div className="text-center mb-8 mt-2">
+                <h3 className="font-display text-2xl font-bold text-gray-900 mb-3">Premium</h3>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-6xl font-black text-orange-600">€19,90</span>
+                  <span className="text-gray-500 font-medium text-lg">/mese</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Prezzo finale, nessuna IVA da aggiungere.</p>
+                <p className="text-sm text-gray-500">Nessun vincolo. Disdici quando vuoi.</p>
+              </div>
+
+              <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3 mb-8">
+                {[
+                  'Piatti e categorie illimitati',
+                  'Import AI da foto o PDF',
+                  'Menu in 7 lingue',
+                  'Allergeni EU e filtro',
+                  'Grafica con il tuo brand',
+                  'QR code pronto da stampare',
+                  'Modifiche live in un secondo',
+                  'Supporto incluso',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                    <span className="text-gray-700 font-medium">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button asChild size="lg" className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-6 rounded-2xl font-bold text-lg shadow-xl shadow-orange-200 hover:scale-[1.02] transition-all">
+                <Link href="/register">Crea il tuo menu gratis</Link>
+              </Button>
+              <p className="text-xs text-center text-gray-500 mt-3">
+                Paghi solo quando pubblichi. Pagamento sicuro con Stripe.
+              </p>
+            </div>
           </div>
         </div>
       </section>

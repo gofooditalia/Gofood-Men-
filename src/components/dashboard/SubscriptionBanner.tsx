@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { useState } from 'react';
 
-// Component to prompt trial users to subscribe
-// Should appear in dashboard layout or top of dashboard pages
-export default function SubscriptionBanner() {
+interface SubscriptionBannerProps {
+    onActivate: () => void;
+}
+
+// Component to prompt trial users to subscribe.
+// The button opens the ActivationModal, which starts the real Stripe checkout (/api/stripe/checkout).
+export default function SubscriptionBanner({ onActivate }: SubscriptionBannerProps) {
     const [show, setShow] = useState(true);
 
     if (!show) return null;
@@ -19,15 +22,18 @@ export default function SubscriptionBanner() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <a
-                        href="https://buy.stripe.com/test_9B65kD0dt3ed9FkgJcf3a00"
+                    <button
+                        type="button"
+                        onClick={onActivate}
                         className="whitespace-nowrap bg-white text-indigo-600 font-bold py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors text-sm w-full sm:w-auto text-center"
                     >
                         Abbonati Ora - €19,90/mese
-                    </a>
+                    </button>
                     <button
+                        type="button"
                         onClick={() => setShow(false)}
                         className="text-indigo-300 hover:text-white"
+                        aria-label="Chiudi"
                     >
                         ✕
                     </button>
