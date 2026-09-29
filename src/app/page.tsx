@@ -167,10 +167,10 @@ export default function LandingPage() {
 
                 <div className="absolute -right-20 top-4 md:top-12 md:-right-34 bg-white rounded-xl md:rounded-2xl shadow-xl md:shadow-2xl p-1.5 md:p-3 border border-orange-100 animate-bounce z-20" style={{ animationDuration: '2.5s', animationDelay: '1s' }}>
                   <div className="flex items-center gap-1 md:gap-2">
-                    <span className="text-base md:text-2xl">🥜</span>
+                    <span className="text-base md:text-2xl">🌾</span>
                     <div>
                       <div className="text-[9px] md:text-xs font-bold text-gray-900">Filtro</div>
-                      <div className="text-[9px] md:text-xs text-gray-600">Allergeni</div>
+                      <div className="text-[9px] md:text-xs text-gray-600">Senza glutine</div>
                     </div>
                   </div>
                 </div>
@@ -394,8 +394,82 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Gluten-free filter spotlight */}
+      <section id="senza-glutine" className="py-20 md:py-28 bg-gradient-to-b from-amber-50 to-white scroll-mt-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Copy */}
+            <div className="min-w-0 text-center lg:text-left order-2 lg:order-1">
+              <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-bold mb-6 border border-amber-200">
+                <span className="text-lg">🌾</span>
+                <span>FILTRO SENZA GLUTINE</span>
+              </div>
+              <h2 className="font-display text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
+                Un tocco, e il cliente celiaco vede cosa può mangiare
+              </h2>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Pochissimi menu digitali lo hanno. Nel tuo c&apos;è già: il cliente attiva il filtro e i piatti con glutine si sbiadiscono, mentre quelli adatti a lui restano in primo piano. Senza chiedere al cameriere piatto per piatto.
+              </p>
+
+              <ul className="space-y-4 mb-10 text-left max-w-xl mx-auto lg:mx-0">
+                {[
+                  { icon: '👆', title: 'Un pulsante, sempre visibile', text: 'In alto nel menu, su ogni pagina, in tutte le lingue.' },
+                  { icon: '✨', title: "L'AI ti aiuta a classificare i piatti", text: 'Propone quali piatti contengono glutine: tu controlli e confermi.' },
+                  { icon: '🔄', title: 'Sempre allineato alla cucina', text: 'Cambi una ricetta e il filtro si aggiorna in tempo reale.' },
+                ].map((item) => (
+                  <li key={item.title} className="flex items-start gap-4">
+                    <span className="w-11 h-11 rounded-xl bg-white shadow-md border border-amber-100 flex items-center justify-center text-xl flex-shrink-0">
+                      {item.icon}
+                    </span>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{item.title}</h3>
+                      <p className="text-gray-600">{item.text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="bg-white rounded-2xl p-5 shadow-md border border-amber-100 text-left max-w-xl mx-auto lg:mx-0 mb-8">
+                <p className="text-gray-700">
+                  <strong>Bistrot 107</strong>, locale di Palermo certificato AIC, usa il filtro sul suo menu Gofood per guidare i clienti con intolleranza al glutine.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <Button asChild size="lg" className="w-full sm:w-auto h-auto whitespace-normal text-center bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-orange-200 hover:scale-105 transition-all">
+                  <Link href="/bistrot107">Provalo sul menu di Bistrot 107</Link>
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-4 max-w-xl mx-auto lg:mx-0">
+                Il filtro si basa sulle informazioni sugli allergeni inserite e verificate dal ristoratore.
+              </p>
+            </div>
+
+            {/* Visual */}
+            <div className="order-1 lg:order-2 flex justify-center">
+              <div className="relative">
+                <div className="absolute -inset-6 bg-gradient-to-br from-amber-200/60 to-orange-200/40 rounded-[3rem] blur-2xl" />
+                <div className="relative w-[260px] md:w-[300px] rounded-[2.5rem] border-[10px] border-gray-900 bg-gray-900 shadow-2xl overflow-hidden">
+                  <Image
+                    src="/images/filtro-glutine-bistrot107.webp"
+                    alt="Menu di Bistrot 107 con il filtro senza glutine attivo: i piatti con glutine sono sbiaditi e segnalati"
+                    width={864}
+                    height={1713}
+                    className="w-full h-auto rounded-[1.8rem]"
+                  />
+                </div>
+                <div className="absolute -left-6 md:-left-12 top-6 bg-white rounded-2xl shadow-xl px-3 py-2 border border-amber-100 flex items-center gap-2">
+                  <span className="text-xl">🌾</span>
+                  <span className="text-xs md:text-sm font-bold text-gray-900">Filtro attivo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Grid */}
-      <section className="pb-20 md:pb-32 pt-0 bg-white">
+      <section className="pb-20 md:pb-32 pt-20 md:pt-28 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h2 className="font-display text-4xl md:text-5xl font-black text-gray-900 mb-6">
