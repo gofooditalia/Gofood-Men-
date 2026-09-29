@@ -471,7 +471,8 @@ export default function LandingPage() {
                   <span className="text-6xl font-black text-orange-600">€19,90</span>
                   <span className="text-gray-500 font-medium text-lg">/mese</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">Nessun vincolo. Disdici quando vuoi.</p>
+                <p className="text-sm text-gray-500 mt-2">Prezzo finale, nessuna IVA da aggiungere.</p>
+                <p className="text-sm text-gray-500">Nessun vincolo. Disdici quando vuoi.</p>
               </div>
 
               <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-3 mb-8">
