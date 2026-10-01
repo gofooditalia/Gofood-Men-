@@ -3,15 +3,18 @@ import OpenAI from 'openai';
 import { createClient } from '@/lib/supabase/server';
 import { SITE_URL } from '@/lib/site';
 
-// Initialize OpenAI client with OpenRouter configuration
-const openai = new OpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY,
-    defaultHeaders: {
-        'HTTP-Referer': SITE_URL,
-        'X-Title': 'Go!Food Menu', // header HTTP: solo ASCII
-    },
-});
+// Client OpenAI (via OpenRouter) creato alla richiesta e non al caricamento del modulo:
+// durante la build la chiave può mancare (es. deploy di anteprima) e il build non deve fallire.
+function getOpenAI() {
+    return new OpenAI({
+        baseURL: 'https://openrouter.ai/api/v1',
+        apiKey: process.env.OPENROUTER_API_KEY,
+        defaultHeaders: {
+            'HTTP-Referer': SITE_URL,
+            'X-Title': 'Go!Food Menu', // header HTTP: solo ASCII
+        },
+    });
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -84,7 +87,7 @@ export async function POST(req: NextRequest) {
       }
     `;
 
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
             model: 'google/gemini-2.5-pro',
             messages: [
                 {
