@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
+import ClientLogosMarquee from "@/components/landing/ClientLogosMarquee";
 
 export default function LandingPage() {
   return (
@@ -196,73 +197,11 @@ export default function LandingPage() {
       {/* Trusted By Section */}
       <section className="py-12 bg-orange-50 border-y border-orange-100">
         <div className="container mx-auto px-4">
-          <p className="text-center text-gray-500 font-semibold uppercase tracking-wider mb-8 text-sm">
+          <p className="text-center text-gray-500 font-semibold uppercase tracking-wider mb-6 text-sm">
             Scelto dai migliori ristoranti
           </p>
-          <div className="grid grid-cols-2 md:flex md:flex-wrap justify-items-center md:justify-center items-center gap-8 md:gap-20 transition-all duration-500">
-            {/* Real Logos */}
-            <Link href="https://gofoodmenu.it/magnaromatrattoria" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:rotate-2 filter hover:drop-shadow-lg cursor-pointer">
-              <div className="relative w-40 h-24 md:w-56 md:h-32">
-                <Image
-                  src="/images/magnaroma-logo.png"
-                  alt="Magna Roma"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-            <Link href="/osteria-cilea" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:-rotate-2 filter hover:drop-shadow-lg cursor-pointer">
-              <div className="relative w-24 h-24 md:w-32 md:h-32">
-                <Image
-                  src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/Go%20Food/Osteria%20Cilea%20Logo%20HD.png"
-                  alt="Osteria Cilea"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-            <Link href="/bistrot107" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:rotate-1 filter hover:drop-shadow-lg cursor-pointer">
-              <div className="relative w-24 h-24 md:w-32 md:h-32">
-                <Image
-                  src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/Go%20Food/images-modified.png"
-                  alt="Bistrot 107"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-            <Link href="/villa-pensabene-ristorante-pizzeria" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:-rotate-1 filter hover:drop-shadow-lg cursor-pointer">
-              <div className="relative w-32 h-32 md:w-48 md:h-48">
-                <Image
-                  src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/Go%20Food/Gemini_Generated_Image_gw5jhzgw5jhzgw5j-Photoroom.png"
-                  alt="Villa Pensabene Ristorante Pizzeria"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-            <Link href="/sunset-barcarello#antipasti" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:rotate-2 filter hover:drop-shadow-lg cursor-pointer">
-              <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-900 p-4 md:p-5">
-                <Image
-                  src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/logos/469bd103-0e3b-43e4-8fea-96e00e915a3b/logo-1789674334625.png"
-                  alt="Sunset Barcarello"
-                  fill
-                  className="object-contain p-4 md:p-5"
-                />
-              </div>
-            </Link>
-            <Link href="/spaghetteria-da-emanuele#antipasti" className="flex items-center gap-4 transition-all duration-500 hover:scale-110 hover:-rotate-2 filter hover:drop-shadow-lg cursor-pointer">
-              <div className="relative w-24 h-24 md:w-32 md:h-32">
-                <Image
-                  src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/logos/13be821f-383f-4f6a-90aa-4ab14df192a7/logo-1768242526744.jpg"
-                  alt="Spaghetteria da Emanuele"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-          </div>
         </div>
+        <ClientLogosMarquee />
       </section>
 
       {/* Problems Section */}
