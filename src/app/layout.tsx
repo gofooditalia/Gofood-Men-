@@ -7,7 +7,6 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import Script from 'next/script';
 import QueryProvider from "@/components/providers/QueryProvider";
 import CookieBanner from "@/components/CookieBanner";
-import { TawkToWidget } from "@/components/TawkToWidget";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -93,7 +92,6 @@ export default function RootLayout({
               /> */}
               <SonnerToaster position="top-center" />
               <CookieBanner />
-              <TawkToWidget />
             </GlutenFilterProvider>
           </QueryProvider>
         </LanguageProvider>

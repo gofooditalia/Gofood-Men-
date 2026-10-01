@@ -96,25 +96,9 @@ export default function DashboardLayoutClient({
         if (!tenant.onboarding_completed) {
           router.push('/onboarding');
         } else {
-          // 1. DYNAMIC TITLE: Set title to include Page Name and Restaurant Name
+          // Titolo dinamico: nome pagina + nome ristorante
           const pageTitle = getPageTitle(pathname);
           document.title = `${pageTitle} - ${tenant.restaurant_name}`;
-
-          // 2. TAWK.TO IDENTIFICATION: Identify the user
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          if ((window as any).Tawk_API) {
-            // We use a small timeout to ensure Tawk is loaded or try/catch around it
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (window as any).Tawk_API.setAttributes({
-                name: tenant.restaurant_name,
-                email: tenant?.owner_id ? `${tenant.slug || 'owner'}@gofood-menu.com` : undefined,
-                restaurant: tenant.restaurant_name
-              }, function (error: any) { });
-            } catch (e) {
-              console.log("Tawk identification error", e);
-            }
-          }
         }
       } else if (!tenant && !error) {
         router.push('/login');

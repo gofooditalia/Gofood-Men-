@@ -106,7 +106,7 @@ function MenuContent({ tenant, categories }: { tenant: Tenant, categories: Categ
     return Math.abs(offset) * velocity;
   };
 
-  // Update URL and Title for tracking (Tawk.to etc)
+  // Aggiorna hash dell'URL e titolo della pagina in base alla categoria attiva
   useEffect(() => {
     const category = categories.find(c => c.id === activeCategory);
     if (!category) return;
