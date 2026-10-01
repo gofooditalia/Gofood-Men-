@@ -51,7 +51,7 @@ export const NewReservationEmail = ({
 
             <Section style={mainContent}>
                 <Text style={introText}>
-                    Ciao <strong>{restaurantName}</strong>, hai ricevuto una nuova proposta di prenotazione tramite GoFood Menu.
+                    Ciao <strong>{restaurantName}</strong>, hai ricevuto una nuova proposta di prenotazione tramite Go!Food Menù.
                 </Text>
 
                 <Section style={detailsCard}>

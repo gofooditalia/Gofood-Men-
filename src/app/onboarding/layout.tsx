@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Configurazione - Gofood Menù',
+    title: 'Configurazione - Go!Food Menù',
     description: 'Configura il tuo ristorante in pochi passaggi.',
 };
 

@@ -28,7 +28,7 @@ export function WizardStepper({ currentStep, totalSteps }: WizardStepperProps) {
                     {/* Logo */}
                     <div className="w-8 h-8 relative flex items-center justify-center">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/favicon.svg" alt="Gofood Menu" className="w-full h-full object-contain" />
+                        <img src="/favicon.svg" alt="Go!Food Menù" className="w-full h-full object-contain" />
                     </div>
 
 
