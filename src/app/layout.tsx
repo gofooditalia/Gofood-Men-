@@ -7,6 +7,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import Script from 'next/script';
 import QueryProvider from "@/components/providers/QueryProvider";
 import CookieBanner from "@/components/CookieBanner";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -92,6 +93,7 @@ export default function RootLayout({
               /> */}
               <SonnerToaster position="top-center" />
               <CookieBanner />
+              <Analytics />
             </GlutenFilterProvider>
           </QueryProvider>
         </LanguageProvider>
