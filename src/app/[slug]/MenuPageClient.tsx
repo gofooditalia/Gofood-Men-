@@ -11,7 +11,6 @@ import { ThemeProvider, useTheme } from '@/components/theme/ThemeContext';
 import { ThemeWrapper } from '@/components/theme/ThemeWrapper';
 import { ThemeDivider } from '@/components/theme/ThemeDivider';
 import { ThemeConfig } from '@/lib/theme-engine/types';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 interface Tenant {
   restaurant_name: string;
@@ -21,39 +20,8 @@ interface Tenant {
   footer_data?: FooterData;
 }
 
-// Tuned animations for "Continuous Momentum" feel
-const variants: Variants = {
-  enter: (direction: number) => {
-    return {
-      x: direction > 0 ? 150 : -150, // Compact distance
-      opacity: 0,
-      transition: {
-        x: { type: "tween", duration: 0.3, ease: "easeOut" }, // Decelerate in
-        opacity: { duration: 0.3 }
-      } as const
-    };
-  },
-  center: {
-    zIndex: 1,
-    x: 0,
-    opacity: 1,
-    transition: {
-      x: { type: "tween", duration: 0.3, ease: "easeOut" },
-      opacity: { duration: 0.3 }
-    } as const
-  },
-  exit: (direction: number) => {
-    return {
-      zIndex: 0,
-      x: direction < 0 ? 150 : -150, // Matching distance
-      opacity: 0,
-      transition: {
-        x: { type: "tween", duration: 0.2, ease: "easeIn" }, // Accelerate out (faster)
-        opacity: { duration: 0.2 }
-      } as const
-    };
-  },
-};
+// Altezza occupata da header fisso (72px) + barra categorie: le sezioni si fermano qui sotto
+const NAV_OFFSET = 140;
 
 interface Dish {
   id: string;
@@ -81,46 +49,74 @@ function MenuContent({ tenant, categories }: { tenant: Tenant, categories: Categ
   const { currentTheme } = useTheme();
   const [activeCategory, setActiveCategory] = useState<string | null>(categories[0]?.id ?? null);
   const [showSplash, setShowSplash] = useState(true);
-  const [direction, setDirection] = useState(0);
+  // Durante lo scroll avviato da un click sulla barra, lo scroll-spy non deve cambiare categoria
+  const isManualScroll = useRef(false);
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const activeIndex = categories.findIndex((c) => c.id === activeCategory);
+  const scrollToCategory = (categoryId: string, behavior: ScrollBehavior = 'smooth') => {
+    const section = document.getElementById(categoryId);
+    if (!section) return;
 
-  const handleCategoryChange = (newCategoryId: string) => {
-    const newIndex = categories.findIndex((c) => c.id === newCategoryId);
-    if (newIndex > activeIndex) {
-      setDirection(1);
-    } else if (newIndex < activeIndex) {
-      setDirection(-1);
-    }
-    setActiveCategory(newCategoryId);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    isManualScroll.current = true;
+    setActiveCategory(categoryId);
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+
+    const top = section.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+    window.scrollTo({ top, behavior });
+
+    scrollTimeout.current = setTimeout(() => {
+      isManualScroll.current = false;
+    }, 1000);
   };
 
-  const handleCategoryClick = (categoryId: string) => {
-    handleCategoryChange(categoryId);
-  };
-
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  const swipeConfidenceThreshold = 10000;
-  const swipePower = (offset: number, velocity: number) => {
-    return Math.abs(offset) * velocity;
-  };
-
-  // Aggiorna hash dell'URL e titolo della pagina in base alla categoria attiva
+  // Scroll-spy: la categoria attiva è l'ultima sezione il cui titolo è passato sotto la barra
   useEffect(() => {
-    const category = categories.find(c => c.id === activeCategory);
-    if (!category) return;
+    let frame = 0;
 
-    // 1. Update URL hash (e.g. /restaurant#category)
-    // We use replaceState to avoid cluttering browser history
-    const url = new URL(window.location.href);
-    url.hash = category.id;
-    window.history.replaceState({}, '', url.toString());
+    const update = () => {
+      frame = 0;
+      if (isManualScroll.current || categories.length === 0) return;
 
-    // 2. Update Document Title
-    document.title = `${category.name} | ${tenant.restaurant_name}`;
-  }, [activeCategory, categories, tenant.restaurant_name]);
+      const atBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
 
+      let current = categories[0].id;
+      if (atBottom) {
+        current = categories[categories.length - 1].id;
+      } else {
+        for (const category of categories) {
+          const el = document.getElementById(category.id);
+          if (!el) continue;
+          if (el.getBoundingClientRect().top - NAV_OFFSET - 24 <= 0) current = category.id;
+          else break;
+        }
+      }
+
+      setActiveCategory((prev) => (prev === current ? prev : current));
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    update();
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    };
+  }, [categories]);
+
+  // Link diretto a una categoria (es. /ristorante#id-categoria)
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id && categories.some((c) => c.id === id)) {
+      requestAnimationFrame(() => scrollToCategory(id, 'auto'));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -151,7 +147,7 @@ function MenuContent({ tenant, categories }: { tenant: Tenant, categories: Categ
       <CategoryNav
         categories={categories}
         activeCategory={activeCategory}
-        onCategoryClick={handleCategoryClick}
+        onCategoryClick={(id) => scrollToCategory(id)}
       />
 
       {/* Hero Section */}
@@ -180,78 +176,43 @@ function MenuContent({ tenant, categories }: { tenant: Tenant, categories: Categ
         </div>
       </section>
 
-      {/* Menu Sections */}
-      <main className="container mx-auto px-4 py-4 space-y-16 min-h-[60vh] overflow-hidden">
-        {/* Grid Stack Container for Simultaneous Transitions */}
-        <div className="grid grid-cols-1">
-          <AnimatePresence initial={false} custom={direction}>
-            {categories.map((category) => (
-              activeCategory === category.id && (
-                <motion.div
-                  key={category.id}
-                  custom={direction}
-                  variants={variants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={1}
-                  onDragEnd={(e, { offset, velocity }) => {
-                    const swipe = swipePower(offset.x, velocity.x);
+      {/* Menu Sections: tutte le categorie in sequenza, navigabili con lo scroll verticale */}
+      <main className="container mx-auto px-4 py-4 space-y-16">
+        {categories.map((category) => (
+          <section key={category.id} id={category.id}>
+            {/* Category Title with Dividers */}
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <ThemeDivider
+                dividerStyle={currentTheme.dividerStyle}
+                className={currentTheme.dividerStyle === 'gradient' ? 'flex-1' : 'max-w-[100px] w-full'}
+              />
+              <h2
+                className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-center shrink-0 px-4 theme-heading"
+                style={{ color: currentTheme.colors.primary }}
+              >
+                {category.name}
+              </h2>
+              <ThemeDivider
+                dividerStyle={currentTheme.dividerStyle}
+                className={currentTheme.dividerStyle === 'gradient' ? 'flex-1' : 'max-w-[100px] w-full'}
+              />
+            </div>
 
-                    if (swipe < -swipeConfidenceThreshold) {
-                      // Swipe Left -> Next Category
-                      if (activeIndex < categories.length - 1) {
-                        handleCategoryChange(categories[activeIndex + 1].id);
-                      }
-                    } else if (swipe > swipeConfidenceThreshold) {
-                      // Swipe Right -> Prev Category
-                      if (activeIndex > 0) {
-                        handleCategoryChange(categories[activeIndex - 1].id);
-                      }
-                    }
-                  }}
-                  className="w-full col-start-1 row-start-1 touch-pan-y"
-                >
-                  <section id={category.id}>
-                    {/* Category Title with Dividers */}
-                    <div className="flex items-center justify-center gap-4 mb-8">
-                      <ThemeDivider
-                        dividerStyle={currentTheme.dividerStyle}
-                        className={currentTheme.dividerStyle === 'gradient' ? 'flex-1' : 'max-w-[100px] w-full'}
-                      />
-                      <h2
-                        className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-center shrink-0 px-4 theme-heading"
-                        style={{ color: currentTheme.colors.primary }}
-                      >
-                        {category.name}
-                      </h2>
-                      <ThemeDivider
-                        dividerStyle={currentTheme.dividerStyle}
-                        className={currentTheme.dividerStyle === 'gradient' ? 'flex-1' : 'max-w-[100px] w-full'}
-                      />
-                    </div>
+            {/* Category Description */}
+            {category.description && (
+              <p className="text-center text-lg mb-8 max-w-2xl mx-auto theme-body" style={{ color: currentTheme.colors.secondary }}>
+                {category.description}
+              </p>
+            )}
 
-                    {/* Category Description */}
-                    {category.description && (
-                      <p className="text-center text-lg mb-8 max-w-2xl mx-auto theme-body" style={{ color: currentTheme.colors.secondary }}>
-                        {category.description}
-                      </p>
-                    )}
-
-                    {/* Dishes Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {category.dishes.map((dish) => (
-                        <DishCard key={dish.id} dish={dish} tenantSlug={tenant.slug} />
-                      ))}
-                    </div>
-                  </section>
-                </motion.div>
-              )
-            ))}
-          </AnimatePresence>
-        </div>
+            {/* Dishes Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {category.dishes.map((dish) => (
+                <DishCard key={dish.id} dish={dish} tenantSlug={tenant.slug} />
+              ))}
+            </div>
+          </section>
+        ))}
       </main>
 
       <Footer
