@@ -92,14 +92,18 @@ Se un piatto non sembra appartenere a nessuna categoria specifica, assegnalo all
         ];
 
         const completion = await getOpenAI().chat.completions.create({
-            model: 'google/gemini-2.5-pro',
+            // Gemini 2.5 Flash: ~4 volte meno caro di Pro su input e output
+            model: 'google/gemini-2.5-flash',
             messages: [
                 {
                     role: 'user',
                     content: contentParts,
                 },
             ],
-        });
+            response_format: { type: 'json_object' },
+            // OpenRouter: disattiva il ragionamento interno, fatturato come token di output
+            reasoning: { enabled: false },
+        } as OpenAI.Chat.ChatCompletionCreateParamsNonStreaming & { reasoning: { enabled: boolean } });
 
         const content = completion.choices[0]?.message?.content;
 
