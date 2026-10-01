@@ -49,3 +49,6 @@ Thumbs.db
 
 /src/generated/prisma
 .env*
+
+# log locali
+*.log
