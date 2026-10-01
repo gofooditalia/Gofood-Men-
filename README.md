@@ -23,7 +23,7 @@ Ogni ristorante ha la propria area di gestione e il proprio menu pubblico su `go
 - Prenotazioni con turni e notifiche email
 - Esportazione del menu in PDF e QR code
 - Abbonamento e fatturazione tramite Stripe
-- Assistenza integrata (form di supporto e chat)
+- Assistenza integrata (form di supporto)
 
 **Accesso**: registrazione, login, recupero password e wizard di onboarding.
 
