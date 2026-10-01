@@ -1,207 +1,109 @@
-# 🍝 Go!Food Menù - Menu Digitale
+# Go!Food Menù
 
-Menu digitale responsive per Go!Food Menù, accessibile tramite QR code con immagini grandi e appetitose di ogni piatto.
+Piattaforma SaaS per creare e pubblicare il menu digitale di un ristorante, consultabile dai clienti tramite QR code.
 
-## 🎨 Features
+Ogni ristorante ha la propria area di gestione e il proprio menu pubblico su `gofoodmenu.it/<slug>`.
 
-- **📱 Mobile-First Design**: Ottimizzato per smartphone e tablet
-- **🌍 Bilingue**: Supporto italiano e inglese con switch istantaneo
-- **🖼️ Immagini Dominanti**: Ogni piatto con foto grande e ben visibile (aspect ratio 4:3)
-- **⚡ Performance**: Next.js 15 con ottimizzazione automatica delle immagini
-- **🎯 Navigazione Intuitiva**: Categorie sticky con scroll smooth
-- **♿ Accessibile**: Semantic HTML e contrasti adeguati
-- **🏷️ Info Allergeni**: Badge chiari per allergeni comuni
+- **Sito**: [gofoodmenu.it](https://gofoodmenu.it)
+- **Prodotto di**: Go!Food di Giorgio Di Martino, Palermo
 
-## 🚀 Quick Start
+## Funzionalità
 
-### Installazione
+**Menu pubblico (cliente al tavolo)**
+- Menu mobile-first con foto grandi dei piatti, navigazione per categorie
+- 7 lingue: italiano, inglese, spagnolo, francese, tedesco, arabo, cinese
+- Allergeni per piatto con pagina dedicata conforme al Reg. UE 1169/2011
+- Filtro senza glutine
+- Pagina di prenotazione online (`/prenota/<slug>`)
+
+**Area ristoratore (`/dashboard`)**
+- Gestione categorie, piatti e libreria foto
+- Rilevamento allergeni e analisi del menu assistiti da AI
+- Design Studio per personalizzare tema e colori del menu
+- Prenotazioni con turni e notifiche email
+- Esportazione del menu in PDF e QR code
+- Abbonamento e fatturazione tramite Stripe
+- Assistenza integrata (form di supporto e chat)
+
+**Accesso**: registrazione, login, recupero password e wizard di onboarding.
+
+## Stack
+
+| Area | Tecnologia |
+|---|---|
+| Framework | Next.js 16 (App Router), React 19, TypeScript |
+| UI | Tailwind CSS, Radix UI, Framer Motion |
+| Database e auth | Supabase (Postgres, Auth, Storage), Prisma |
+| Pagamenti | Stripe (checkout, portale clienti, webhook) |
+| Email | Resend + React Email |
+| AI | OpenRouter |
+| Anti-spam | Google reCAPTCHA |
+
+## Avvio in locale
 
 ```bash
-npm install
+npm install          # esegue anche prisma generate
+npm run dev          # http://localhost:3000
 ```
 
-### Sviluppo
+Crea un file `.env.local` con queste variabili:
 
-```bash
-npm run dev
+| Variabile | Uso |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Operazioni server-side su Supabase |
+| `DATABASE_URL` | Connessione Prisma al database |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | Abbonamenti |
+| `RESEND_API_KEY` | Invio email |
+| `OPENROUTER_API_KEY` | Funzioni AI |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` | reCAPTCHA |
+
+## Script
+
+| Comando | Cosa fa |
+|---|---|
+| `npm run dev` | Server di sviluppo (Turbopack) |
+| `npm run build` | `prisma generate` + build di produzione |
+| `npm start` | Avvia la build di produzione |
+| `npm run lint` | ESLint |
+| `npm run supabase:setup` | Applica le migrazioni in `supabase/migrations` |
+
+## Struttura
+
 ```
-
-Apri [http://localhost:3000](http://localhost:3000) nel browser.
-
-### Build Produzione
-
-```bash
-npm run build
-npm start
-```
-
-## 📁 Struttura Progetto
-
-```
-magnaroma-table-menu/
+gofoodmenu/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx          # Layout principale con LanguageProvider
-│   │   ├── page.tsx            # Homepage con menu completo
-│   │   └── globals.css         # Stili globali
-│   ├── components/
-│   │   ├── Header.tsx          # Header con logo e language switcher
-│   │   ├── CategoryNav.tsx     # Navigazione categorie
-│   │   ├── DishCard.tsx        # Card singolo piatto
-│   │   ├── LanguageSwitcher.tsx # Toggle IT/EN
-│   │   └── ScrollToTop.tsx     # Bottone scroll to top
-│   ├── contexts/
-│   │   └── LanguageContext.tsx # Context per gestione lingua
-│   ├── hooks/
-│   │   └── useTranslation.ts   # Hook per traduzioni
-│   ├── types/
-│   │   └── menu.ts             # TypeScript interfaces
-│   └── data/
-│       └── menu.json           # Dati del menu
-└── public/
-    └── images/
-        └── dishes/             # Immagini piatti
+│   │   ├── page.tsx              # Landing commerciale
+│   │   ├── [slug]/               # Menu pubblico del ristorante (+ /allergeni)
+│   │   ├── prenota/[slug]/       # Prenotazione online
+│   │   ├── dashboard/            # Area ristoratore
+│   │   ├── onboarding/           # Wizard primo accesso
+│   │   ├── api/                  # AI, Stripe, supporto, reCAPTCHA
+│   │   └── auth/                 # Callback Supabase Auth
+│   ├── components/               # UI, dashboard, email, prenotazioni, tema
+│   ├── lib/                      # Supabase, Stripe, Prisma, theme engine
+│   └── types/
+├── supabase/migrations/          # Schema e migrazioni SQL
+├── prisma/schema.prisma
+└── docs/                         # Guide di setup e archivio storico
 ```
 
-## 🖼️ Gestione Immagini
+## Documentazione
 
-### Aggiungere le Foto dei Piatti
+- [Setup Supabase](docs/setup-supabase.md)
+- [Setup Stripe](docs/setup-stripe.md)
+- [Changelog](CHANGELOG.md)
+- [Archivio](docs/archivio/): documenti della prima versione del progetto, nato come menu digitale per Magna Roma Trattoria
 
-1. Posiziona le tue foto professionali in `/public/images/dishes/`
-2. Nomina i file esattamente come nel `menu.json` (es: `carbonara.jpg`)
-3. **Formato consigliato**: WebP o JPEG ottimizzato
-4. **Dimensioni**: Max 1200px di larghezza
-5. **Aspect Ratio**: 4:3 o 16:9 per risultati ottimali
+## Deploy
 
-Vedi `/public/images/dishes/README.md` per la lista completa dei file necessari.
+Il progetto è pensato per Vercel (Next.js, nessuna configurazione aggiuntiva nel repo). Le variabili d'ambiente vanno configurate anche nel progetto Vercel, e l'endpoint `/api/stripe/webhook` va registrato nella dashboard Stripe.
 
-### Ottimizzazione Immagini
+## Licenza
 
-Next.js ottimizza automaticamente le immagini con:
-- Lazy loading
-- Responsive images
-- Modern formats (WebP)
-- Dimensioni ottimizzate per device
+Il codice è distribuito con licenza MIT (vedi [LICENSE](LICENSE)). Il nome **Go!Food Menù**, il marchio **Go!Food**, il logo e gli asset grafici non sono coperti dalla licenza e restano riservati.
 
-## 📝 Modificare il Menu
+## Contatti
 
-Modifica il file `/src/data/menu.json` per:
-- Aggiungere/rimuovere piatti
-- Modificare prezzi
-- Aggiornare descrizioni
-- Gestire allergeni
-
-### Struttura Piatto
-
-```json
-{
-  "id": "carbonara",
-  "name": {
-    "it": "Carbonara",
-    "en": "Carbonara"
-  },
-  "description": {
-    "it": "Descrizione italiana",
-    "en": "English description"
-  },
-  "price": "14.00",
-  "image": "/images/dishes/carbonara.jpg",
-  "allergens": ["glutine", "uova", "lattosio"]
-}
-```
-
-### Allergeni Supportati
-
-- `glutine` (Gluten)
-- `lattosio` (Lactose)
-- `uova` (Eggs)
-- `pesce` (Fish)
-- `frutta-secca` (Nuts)
-- `sedano` (Celery)
-
-## 🎨 Design System
-
-### Colori
-
-- **Rosso Roma**: `#8B0000` (accenti, bottoni)
-- **Oro/Ocra**: `#D4AF37` (dettagli, badge prezzi)
-- **Bianco/Crema**: `#FFF8E7` (background)
-- **Grigio/Nero**: Testi
-
-### Tipografia
-
-- **Headings**: Playfair Display (serif elegante)
-- **Body**: Inter (sans-serif leggibile)
-
-## 📱 QR Code
-
-Per generare il QR code:
-
-1. Deploya l'applicazione (Vercel, Netlify, ecc.)
-2. Usa il link di produzione per generare un QR code
-3. Stampa il QR code e posizionalo sui tavoli
-
-### Servizi QR Code Consigliati
-
-- [QR Code Generator](https://www.qr-code-generator.com/)
-- [QRCode Monkey](https://www.qrcode-monkey.com/)
-
-## 🌐 Deploy
-
-### Vercel (Consigliato)
-
-```bash
-npm install -g vercel
-vercel
-```
-
-### Altre Opzioni
-
-- Netlify
-- Railway
-- Render
-- AWS Amplify
-
-## 🛠️ Stack Tecnologico
-
-- **Framework**: Next.js 15 (App Router)
-- **React**: 19.1.0
-- **TypeScript**: 5.x
-- **Styling**: Tailwind CSS 4
-- **Fonts**: Google Fonts (Inter, Playfair Display)
-
-## 📜 License & Usage
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
-### ⚠️ Important Notes
-
-- **Code**: Open source and free to use under MIT License
-- **Brand Assets**: Go!Food Menù name, logo, and branding are © Go!Food Menù
-- **Content**: Menu items, descriptions, and images are © Go!Food Menù
-- **Commercial Use**: You can use this code for your restaurant, but not the Go!Food Menù brand
-
-### 🙏 Attribution
-
-If you use this code for your restaurant:
-- A link back to this repo is appreciated (but not required)
-- Consider starring ⭐ the project
-- Share your implementation - we'd love to see it!
-
-### 🤝 Contributing
-
-While this was built for a specific client, improvements and bug fixes are welcome!
-Feel free to:
-- Open issues for bugs
-- Submit PRs for enhancements
-- Fork for your own restaurant
-
-**Built with ❤️ for the food industry**
-
-## 🤝 Supporto
-
-Per domande o supporto, contatta il team di sviluppo.
-
----
-
-**Go!Food Menù** - Il tuo menu digitale 🍝
+[help@gofoodmenu.it](mailto:help@gofoodmenu.it)

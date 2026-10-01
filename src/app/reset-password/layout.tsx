@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Reimposta Password - Gofood Menù',
+    title: 'Reimposta Password - Go!Food Menù',
     description: 'Imposta una nuova password per il tuo account.',
 };
 

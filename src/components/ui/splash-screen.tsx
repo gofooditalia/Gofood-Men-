@@ -36,7 +36,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                 <div className="relative w-56 h-20 mb-6 mx-auto">
                     <Image
                         src="/logo-gofood-new.svg"
-                        alt="Gofood Menù"
+                        alt="Go!Food Menù"
                         fill
                         className="object-contain"
                         priority

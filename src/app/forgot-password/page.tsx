@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
                     <Link href="/" className="inline-block">
                         <img
                             src="/logo-gofood-new.svg"
-                            alt="GO! FOOD"
+                            alt="Go!Food"
                             className="h-14 w-auto mx-auto mb-4"
                         />
                     </Link>

@@ -9,7 +9,7 @@ const openai = new OpenAI({
     apiKey: process.env.OPENROUTER_API_KEY,
     defaultHeaders: {
         'HTTP-Referer': SITE_URL,
-        'X-Title': 'Gofood Menu', // Replace with your actual site name
+        'X-Title': 'Go!Food Menu', // header HTTP: solo ASCII
     },
 });
 

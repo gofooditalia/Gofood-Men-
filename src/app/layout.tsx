@@ -23,13 +23,13 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Gofood Menù - Il Menu Digitale per Ristoranti",
-    template: "%s | Gofood Menù"
+    default: "Go!Food Menù - Il Menu Digitale per Ristoranti",
+    template: "%s | Go!Food Menù"
   },
   description: "La soluzione completa per il tuo ristorante: menu digitale multilingua, gestione allergeni e setup immediato. Scansiona il QR e ordina. Inizia oggi.",
   keywords: "menu digitale, ristorante, gofood, menu online, qr code, menu multilingua, gestione allergeni",
   openGraph: {
-    title: "Gofood Menù - Il Menu Digitale per Ristoranti",
+    title: "Go!Food Menù - Il Menu Digitale per Ristoranti",
     description: "La soluzione completa per il tuo ristorante: menu digitale multilingua, gestione allergeni e setup immediato. Scansiona il QR e ordina. Inizia oggi.",
     type: "website",
     images: [
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
         url: '/opengraph-image.png',
         width: 1200,
         height: 630,
-        alt: 'Gofood Menù Anteprima',
+        alt: 'Go!Food Menù Anteprima',
       },
     ],
   },

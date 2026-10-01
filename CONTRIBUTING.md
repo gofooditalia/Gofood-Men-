@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-Thank you for your interest in contributing to the Magna Roma Menu project! 🍝
+Thank you for your interest in contributing to Go!Food Menù! 🍝
 
 ## 🤝 How to Contribute
 
@@ -34,7 +34,7 @@ Thank you for your interest in contributing to the Magna Roma Menu project! 🍝
 
 ### Testing
 - Test on mobile devices
-- Verify both IT/EN languages work
+- Verify the menu in the supported languages (it, en, es, fr, de, ar, zh)
 - Check accessibility compliance
 - Ensure build passes: `npm run build`
 
@@ -56,7 +56,7 @@ This project is designed for restaurant menus. Contributions should focus on:
 
 ## ⚠️ Important Notes
 
-- **Brand Content**: Don't modify Magna Roma specific content
+- **Brand**: the Go!Food Menù name, Go!Food logo and brand assets are not covered by the MIT License
 - **Images**: Don't include copyrighted images
 - **Licensing**: Contributions will be under MIT License
 - **Testing**: Always test on real devices
@@ -65,7 +65,7 @@ This project is designed for restaurant menus. Contributions should focus on:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR-USERNAME/magnaroma-table-menu.git
+git clone https://github.com/YOUR-USERNAME/gofoodmenu.git
 
 # Install dependencies
 npm install

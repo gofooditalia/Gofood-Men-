@@ -35,7 +35,7 @@ export function ReservationPageClient({ tenant, config }: ReservationPageClientP
                     >
                         <Image
                             src="/gofood-logoHD.svg"
-                            alt="GoFood Menu"
+                            alt="Go!Food Menù"
                             width={160}
                             height={128}
                             className="w-full h-full object-contain"
@@ -65,7 +65,7 @@ export function ReservationPageClient({ tenant, config }: ReservationPageClientP
                     <span>Powered by</span>
                     <Image
                         src="/logo-gofood-new.svg"
-                        alt="Gofood Menu Logo"
+                        alt="Go!Food Menù Logo"
                         width={80}
                         height={24}
                         className="h-6 w-auto"

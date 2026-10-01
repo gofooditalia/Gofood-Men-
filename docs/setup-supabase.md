@@ -9,19 +9,19 @@
 - ✅ `dotenv` v17.2.3
 
 ### File Creati
-- ✅ [.env.local](.env.local) - Configurazione environment variables
-- ✅ [src/lib/supabase/client.ts](src/lib/supabase/client.ts) - Client browser
-- ✅ [src/lib/supabase/server.ts](src/lib/supabase/server.ts) - Client server
-- ✅ [src/lib/supabase/middleware.ts](src/lib/supabase/middleware.ts) - Client middleware
-- ✅ [src/middleware.ts](src/middleware.ts) - Next.js middleware
-- ✅ [src/types/database.ts](src/types/database.ts) - TypeScript database types
-- ✅ [supabase/run-migrations.js](supabase/run-migrations.js) - Script automazione migrations
+- ✅ [.env.local](../.env.local) - Configurazione environment variables
+- ✅ [src/lib/supabase/client.ts](../src/lib/supabase/client.ts) - Client browser
+- ✅ [src/lib/supabase/server.ts](../src/lib/supabase/server.ts) - Client server
+- ✅ [src/lib/supabase/middleware.ts](../src/lib/supabase/middleware.ts) - Client middleware
+- ✅ [src/middleware.ts](../src/middleware.ts) - Next.js middleware
+- ✅ [src/types/database.ts](../src/types/database.ts) - TypeScript database types
+- ✅ [supabase/run-migrations.js](../supabase/run-migrations.js) - Script automazione migrations
 
 ### SQL Files
-- ✅ [supabase/migrations/001_schema.sql](supabase/migrations/001_schema.sql) - Schema database
-- ✅ [supabase/migrations/002_seed.sql](supabase/migrations/002_seed.sql) - 14 allergeni EU
-- ✅ [supabase/migrations/003_policies.sql](supabase/migrations/003_policies.sql) - RLS policies
-- ✅ [supabase/storage-policies.sql](supabase/storage-policies.sql) - Storage policies
+- ✅ [supabase/migrations/001_schema.sql](../supabase/migrations/001_schema.sql) - Schema database
+- ✅ [supabase/migrations/002_seed.sql](../supabase/migrations/002_seed.sql) - 14 allergeni EU
+- ✅ [supabase/migrations/003_policies.sql](../supabase/migrations/003_policies.sql) - RLS policies
+- ✅ [supabase/storage-policies.sql](../supabase/storage-policies.sql) - Storage policies
 
 ---
 
@@ -347,5 +347,5 @@ Dopo aver completato il setup:
 **✨ Setup completato! Il database è pronto per l'uso.**
 
 Per domande o problemi, consulta:
-- 📖 [supabase/README.md](supabase/README.md) - Guida dettagliata setup
-- 📝 [Piano completo](.claude/plans/vivid-cuddling-waterfall.md) - Architettura completa
+- 📖 [supabase/README.md](../supabase/README.md) - Guida dettagliata setup
+- 📝 [Piano completo](../.claude/plans/vivid-cuddling-waterfall.md) - Architettura completa

@@ -225,7 +225,7 @@ export default function DashboardOverview() {
               } else {
                 const url = `${window.location.origin}/${tenant.slug}`;
                 const title = `Menu di ${tenant.restaurant_name}`;
-                const text = `Scopri il nostro menu digitale su GoFood!`;
+                const text = `Scopri il nostro menu digitale su Go!Food Menù!`;
 
                 if (navigator.share) {
                   try {

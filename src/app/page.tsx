@@ -1,5 +1,5 @@
 /**
- * Landing Page - GO! FOOD Menu Builder
+ * Landing Page - Go!Food Menù Builder
  * Design moderno con colori arancioni accattivanti
  */
 
@@ -22,7 +22,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-4">
               <Image
                 src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/sign/Go%20Food/gofood-logoHD.svg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zNzE5MDI4MC1kOTI1LTQ2YmQtOTFhMC0wMTIzZTlmZDY0MDciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJHbyBGb29kL2dvZm9vZC1sb2dvSEQuc3ZnIiwiaWF0IjoxNzY0Nzk5OTg0LCJleHAiOjIwODAxNTk5ODR9.u0xvBk9SohQ53303twe_gKZ87_Bj2ga3dD1HauBaevk"
-                alt="GO! FOOD"
+                alt="Go!Food"
                 width={150}
                 height={60}
                 className="h-14 w-auto"
@@ -431,7 +431,7 @@ export default function LandingPage() {
 
               <div className="bg-white rounded-2xl p-5 shadow-md border border-amber-100 text-left max-w-xl mx-auto lg:mx-0 mb-8">
                 <p className="text-gray-700">
-                  <strong>Bistrot 107</strong>, locale di Palermo certificato AIC, usa il filtro sul suo menu Gofood per guidare i clienti con intolleranza al glutine.
+                  <strong>Bistrot 107</strong>, locale di Palermo certificato AIC, usa il filtro di Go!Food Menù per guidare i clienti con intolleranza al glutine.
                 </p>
               </div>
 
@@ -619,7 +619,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <Image
                 src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/sign/Go%20Food/gofood-logoHD.svg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zNzE5MDI4MC1kOTI1LTQ2YmQtOTFhMC0wMTIzZTlmZDY0MDciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJHbyBGb29kL2dvZm9vZC1sb2dvSEQuc3ZnIiwiaWF0IjoxNzY0Nzk5OTg0LCJleHAiOjIwODAxNTk5ODR9.u0xvBk9SohQ53303twe_gKZ87_Bj2ga3dD1HauBaevk"
-                alt="GO! FOOD"
+                alt="Go!Food"
                 width={150}
                 height={60}
                 className="h-12 w-auto mb-4 brightness-0 invert"
@@ -660,7 +660,7 @@ export default function LandingPage() {
           </div>
 
           <div className="border-t border-gray-800 mt-16 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; {new Date().getFullYear()} GO! FOOD. Tutti i diritti riservati.</p>
+            <p>&copy; {new Date().getFullYear()} Go!Food. Tutti i diritti riservati.</p>
             <p className="mt-2">P.IVA 06955440828 - Via Mariano Stabile 160, Palermo</p>
             <Script id="iubenda-loader-landing" strategy="lazyOnload">
               {`(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);`}

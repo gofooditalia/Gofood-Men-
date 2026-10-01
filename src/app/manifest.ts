@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'Gofood Menù',
-        short_name: 'Gofood',
+        name: 'Go!Food Menù',
+        short_name: 'Go!Food',
         description: 'Menu digitale multilingua, gestione allergeni e setup immediato.',
         start_url: '/',
         display: 'standalone',

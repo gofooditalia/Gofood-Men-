@@ -30,7 +30,7 @@ export const EmailLayout = ({ preview, children }: EmailLayoutProps) => {
                             src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/public/Go%20Food/gofood-logoHD.jpg"
                             width="300"
                             height="66"
-                            alt="GO! FOOD"
+                            alt="Go!Food"
                             style={{ margin: '0 auto', objectFit: 'contain' }}
                         />
                     </Section>
@@ -44,7 +44,7 @@ export const EmailLayout = ({ preview, children }: EmailLayoutProps) => {
                     <Section style={footer}>
                         <Hr style={hr} />
                         <Text style={{ marginBottom: '16px', color: '#666' }}>
-                            Powered by <strong>GoFood Menu</strong>
+                            Powered by <strong>Go!Food Menù</strong>
                         </Text>
                         <div style={{ marginBottom: '16px' }}>
                             <Link
@@ -62,7 +62,7 @@ export const EmailLayout = ({ preview, children }: EmailLayoutProps) => {
                             </Link>
                         </div>
                         <Text style={{ fontSize: '10px', color: '#ccc' }}>
-                            GO! FOOD © {new Date().getFullYear()} Tutti i diritti riservati. - P.IVA 06955440828
+                            Go!Food © {new Date().getFullYear()} Tutti i diritti riservati. - P.IVA 06955440828
                         </Text>
                     </Section>
                 </Container>

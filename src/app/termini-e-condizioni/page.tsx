@@ -13,7 +13,7 @@ export default function TermsPage() {
                         <Link href="/" className="flex items-center gap-4">
                             <Image
                                 src="https://sgdxmtqrjgxuajxxvajf.supabase.co/storage/v1/object/sign/Go%20Food/gofood-logoHD.svg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zNzE5MDI4MC1kOTI1LTQ2YmQtOTFhMC0wMTIzZTlmZDY0MDciLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJHbyBGb29kL2dvZm9vZC1sb2dvSEQuc3ZnIiwiaWF0IjoxNzY0Nzk5OTg0LCJleHAiOjIwODAxNTk5ODR9.u0xvBk9SohQ53303twe_gKZ87_Bj2ga3dD1HauBaevk"
-                                alt="GO! FOOD"
+                                alt="Go!Food"
                                 width={120}
                                 height={48}
                                 className="h-10 w-auto"
@@ -39,7 +39,7 @@ export default function TermsPage() {
                     </CardHeader>
                     <CardContent className="prose prose-orange text-gray-600">
                         <p>
-                            Benvenuti su GO! FOOD Menu. Utilizzando il nostro sito web e i nostri servizi, accetti di rispettare e di essere vincolato dai seguenti termini e condizioni. Si prega di leggerli attentamente.
+                            Benvenuti su Go!Food Menù. Utilizzando il nostro sito web e i nostri servizi, accetti di rispettare e di essere vincolato dai seguenti termini e condizioni. Si prega di leggerli attentamente.
                         </p>
                     </CardContent>
                 </Card>
@@ -50,7 +50,7 @@ export default function TermsPage() {
                     </CardHeader>
                     <CardContent className="prose prose-orange text-gray-600">
                         <p>
-                            GO! FOOD Menu fornisce una piattaforma software-as-a-service (SaaS) che consente ai ristoratori di creare, gestire e pubblicare menu digitali accessibili tramite QR code.
+                            Go!Food Menù fornisce una piattaforma software-as-a-service (SaaS) che consente ai ristoratori di creare, gestire e pubblicare menu digitali accessibili tramite QR code.
                             Il servizio include strumenti per la gestione di piatti, categorie, allergeni e traduzioni automatiche.
                         </p>
                     </CardContent>
@@ -63,7 +63,7 @@ export default function TermsPage() {
                     <CardContent className="prose prose-orange text-gray-600">
                         <p>
                             Per accedere ad alcune funzionalità del Servizio, è necessario creare un account. Sei responsabile del mantenimento della riservatezza delle tue credenziali di accesso
-                            e di tutte le attività che avvengono sotto il tuo account. GO! FOOD Menu non sarà responsabile per eventuali perdite derivanti dall'uso non autorizzato del tuo account.
+                            e di tutte le attività che avvengono sotto il tuo account. Go!Food Menù non sarà responsabile per eventuali perdite derivanti dall'uso non autorizzato del tuo account.
                         </p>
                     </CardContent>
                 </Card>
@@ -100,7 +100,7 @@ export default function TermsPage() {
                         </p>
                         <p className="mt-4">
                             <strong>Importante:</strong> È responsabilità esclusiva del ristoratore garantire l'accuratezza delle informazioni sugli <strong>allergeni</strong> e sugli ingredienti, in conformità con le normative locali (es. Regolamento UE 1169/2011).
-                            GO! FOOD Menu fornisce gli strumenti per indicare gli allergeni, ma non verifica la correttezza dei dati inseriti.
+                            Go!Food Menù fornisce gli strumenti per indicare gli allergeni, ma non verifica la correttezza dei dati inseriti.
                         </p>
                     </CardContent>
                 </Card>
@@ -111,10 +111,10 @@ export default function TermsPage() {
                     </CardHeader>
                     <CardContent className="prose prose-orange text-gray-600">
                         <p>
-                            Il servizio è fornito "così com'è" e "come disponibile". GO! FOOD Menu non garantisce che il servizio sarà ininterrotto o privo di errori.
+                            Il servizio è fornito "così com'è" e "come disponibile". Go!Food Menù non garantisce che il servizio sarà ininterrotto o privo di errori.
                         </p>
                         <p className="mt-2">
-                            In nessun caso GO! FOOD Menu sarà responsabile per danni indiretti, incidentali, speciali, consequenziali o punitivi, inclusi, senza limitazione, perdita di profitti, dati, uso o avviamento.
+                            In nessun caso Go!Food Menù sarà responsabile per danni indiretti, incidentali, speciali, consequenziali o punitivi, inclusi, senza limitazione, perdita di profitti, dati, uso o avviamento.
                         </p>
                     </CardContent>
                 </Card>
@@ -139,7 +139,7 @@ export default function TermsPage() {
             {/* Footer semplificato */}
             <footer className="bg-gray-900 text-white py-8 border-t border-gray-800">
                 <div className="container mx-auto px-4 text-center text-gray-400">
-                    <p>&copy; {new Date().getFullYear()} GO! FOOD. Tutti i diritti riservati.</p>
+                    <p>&copy; {new Date().getFullYear()} Go!Food. Tutti i diritti riservati.</p>
                 </div>
             </footer>
         </div>
