@@ -36,7 +36,11 @@ export interface Dish {
         rationale?: string;
         confidence?: 'high' | 'medium' | 'low';
         needs_review?: boolean;
+        /** Allergeni certi rilevati dall'ultima scansione (ID; nei dati più vecchi possono essere nomi) */
         allergens_detected?: string[];
+        /** Allergeni possibili suggeriti dall'ultima scansione (ID) */
+        allergens_possible?: string[];
+        contains_gluten?: boolean | 'unknown';
         last_scan?: string;
     };
 }

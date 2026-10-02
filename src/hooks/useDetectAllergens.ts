@@ -1,8 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 
 export interface AllergenResult {
+    dishId?: string;
     dishName: string;
+    /** ID degli allergeni certi (ingrediente scritto nel menu): assegnati in automatico */
     allergens: string[];
+    /** ID degli allergeni solo possibili (dipendono dalla ricetta): da confermare a mano */
+    possible_allergens?: string[];
     contains_gluten: boolean | "unknown";
     confidence: "high" | "medium" | "low";
     rationale: string;

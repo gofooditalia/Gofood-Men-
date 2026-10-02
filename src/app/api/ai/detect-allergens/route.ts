@@ -16,6 +16,34 @@ function getOpenAI() {
     });
 }
 
+interface DishInput {
+    id: string;
+    name: string;
+    description?: string | null;
+}
+
+type GlutenFlag = boolean | 'unknown';
+type Confidence = 'high' | 'medium' | 'low';
+
+interface RawResult {
+    dishId?: unknown;
+    dishName?: unknown;
+    allergens_certain?: unknown;
+    allergens_possible?: unknown;
+    contains_gluten?: unknown;
+    confidence?: unknown;
+    rationale?: unknown;
+}
+
+function toIdList(value: unknown, validIds: Set<string>): string[] {
+    if (!Array.isArray(value)) return [];
+    const ids = value
+        .filter((v): v is string => typeof v === 'string')
+        .map((v) => v.trim().toLowerCase())
+        .filter((v) => validIds.has(v));
+    return Array.from(new Set(ids));
+}
+
 export async function POST(req: NextRequest) {
     try {
         const supabase = await createClient();
@@ -26,66 +54,82 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { dishes } = body;
+        const dishes: DishInput[] = Array.isArray(body?.dishes) ? body.dishes : [];
 
-        if (!dishes || !Array.isArray(dishes) || dishes.length === 0) {
+        if (dishes.length === 0) {
             return NextResponse.json(
                 { error: 'Nessun piatto fornito per l\'analisi' },
                 { status: 400 }
             );
         }
 
+        // Elenco ufficiale degli allergeni dal database: il modello deve rispondere con questi ID
+        const { data: allergenRows, error: allergenError } = await (supabase.from('allergens') as any)
+            .select('id, name')
+            .order('number');
+
+        if (allergenError || !allergenRows?.length) {
+            throw new Error('Impossibile caricare l\'elenco degli allergeni');
+        }
+
+        const allergenList = allergenRows as { id: string; name: string }[];
+        const validIds = new Set(allergenList.map((a) => a.id.toLowerCase()));
+        const glutenId = allergenList.find((a) =>
+            a.id.toLowerCase().includes('glutine') || a.name.toLowerCase().includes('glutine')
+        )?.id.toLowerCase();
+
+        const dishesForPrompt = dishes.map((d) => ({
+            dishId: d.id,
+            name: d.name,
+            description: d.description || '',
+        }));
+
         const prompt = `
-      Sei un esperto tecnologo alimentare. Il tuo compito è analizzare una lista di piatti e identificare i probabili allergeni basandoti sul nome, sulla descrizione e sugli ingredienti forniti.
+Sei un tecnologo alimentare. Per ogni piatto indica gli allergeni (Reg. UE 1169/2011) separando
+ciò che è CERTO da ciò che è solo POSSIBILE. Il ristoratore conosce le proprie ricette meglio di te:
+non trasformare mai un'ipotesi in una certezza.
 
-      Analizza i seguenti piatti:
-      ${JSON.stringify(dishes, null, 2)}
+Allergeni ammessi (usa SOLO questi ID, esattamente come scritti):
+${allergenList.map((a) => `- ${a.id}: ${a.name}`).join('\n')}
 
-      Regole di Analisi:
-      1. **Allergeni EU (1169/2011)**: Cerca SOLO questi allergeni:
-         - Glutine (Gluten)
-         - Crostacei (Crustaceans)
-         - Uova (Eggs)
-         - Pesce (Fish)
-         - Arachidi (Peanuts)
-         - Soia (Soy)
-         - Latte (Milk)
-         - Frutta a guscio (Nuts)
-         - Sedano (Celery)
-         - Senape (Mustard)
-         - Sesamo (Sesame)
-         - Solfiti (Sulphites)
-         - Lupini (Lupin)
-         - Molluschi (Molluscs)
+Piatti da analizzare:
+${JSON.stringify(dishesForPrompt, null, 2)}
 
-      2. **Contiene Glutine**:
-         - Imposta "contains_gluten": true se trovi: pane, pasta, farina (grano, orzo, farro, ecc.), panatura, birra, biscotti, ecc.
-         - Imposta "contains_gluten": "unknown" se il piatto è tradizionalmente senza glutine (es. risotto, polenta) ma c'è rischio contaminazione o ingredienti non specificati.
-         - Imposta "contains_gluten": false SOLO se sei sicuro (es. "Bistecca ai ferri", "Insalata mista").
+REGOLE
+1. allergens_certain: SOLO allergeni contenuti in un ingrediente scritto esplicitamente nel nome o
+   nella descrizione, oppure che quell'ingrediente contiene per definizione.
+   Esempi: "pecorino", "burro", "mozzarella" → latte; "gamberi" → crostacei; "spaghetti", "pane",
+   "farina", "pangrattato", "pinsa" → glutine; "uovo", "maionese" → uova; "vongole", "cozze" → molluschi.
+2. allergens_possible: allergeni che dipendono da una ricetta NON scritta nel menu.
+   - Ricette tradizionali con varianti: NON metterli in certain, mettili in possible.
+     Esempio: "Tonnarelli cacio e pepe" → certain: glutine, latte; possible: uova
+     (alcune paste fresche contengono uova, altre sono solo acqua e farina).
+     Esempio: "Carbonara" senza ingredienti → certain: glutine (pasta), uova, latte (sono la
+     definizione stessa del piatto); nient'altro.
+   - Rischi generici (contaminazione, fritture, salse non descritte): possible, mai certain.
+3. Un allergene non può stare sia in certain sia in possible.
+4. contains_gluten: true se "${glutenId ?? 'glutine'}" è in certain; "unknown" se è solo in possible;
+   false solo se il piatto è chiaramente privo di glutine (es. "Bistecca ai ferri", "Insalata mista").
+5. confidence: "high" se gli ingredienti sono espliciti e possible è vuoto; "medium" se c'è almeno
+   un possibile; "low" se il nome è generico (es. "Pasta del giorno") e mancano ingredienti.
+6. rationale: una frase breve in italiano che spiega certi e possibili.
+7. dishId: copia esattamente il valore ricevuto.
 
-      3. **Livello di Confidenza (confidence)**:
-         - "high": Ingredienti espliciti (es. "Carbonara: uova, guanciale, pecorino" -> Uova, Latte).
-         - "medium": Piatto tradizionale noto (es. "Carbonara" senza ingredienti -> Uova, Latte, Glutine) MA con rischio varianti.
-         - "low": Nome generico (es. "Torta della nonna", "Pasta del giorno") senza ingredienti. -> Needs Review = true.
-
-      4. **Needs Review**:
-         - true se confidence != high
-         - true se contains_gluten == "unknown"
-
-      Restituisci un JSON con questa struttura esatta:
-      {
-        "results": [
-            {
-                "dishName": "Nome Piatto (uguale all'input)",
-                "allergens": ["Uova", "Latte"], // Array vuoto se nessuno
-                "contains_gluten": true, // true, false, o "unknown"
-                "confidence": "high", // "high", "medium", "low"
-                "rationale": "Rilevato da 'pecorino' (Latte) e 'spaghetti' (Glutine).",
-                "needs_review": false
-            }
-        ]
-      }
-    `;
+Rispondi SOLO con JSON in questo formato:
+{
+  "results": [
+    {
+      "dishId": "...",
+      "dishName": "...",
+      "allergens_certain": ["id"],
+      "allergens_possible": ["id"],
+      "contains_gluten": true,
+      "confidence": "medium",
+      "rationale": "..."
+    }
+  ]
+}
+`;
 
         const completion = await getOpenAI().chat.completions.create({
             // Gemini 2.5 Flash: ~4 volte meno caro di Pro su input e output
@@ -96,6 +140,7 @@ export async function POST(req: NextRequest) {
                     content: prompt,
                 },
             ],
+            temperature: 0, // risposte il più possibile stabili tra una scansione e l'altra
             response_format: { type: 'json_object' },
             // OpenRouter: disattiva il ragionamento interno, fatturato come token di output
             reasoning: { enabled: false },
@@ -107,7 +152,7 @@ export async function POST(req: NextRequest) {
             throw new Error('Nessuna risposta dall\'AI');
         }
 
-        // Robust JSON extraction: Find the first '{' and the last '}'
+        // Estrazione robusta del JSON: dalla prima '{' all'ultima '}'
         const firstBrace = content.indexOf('{');
         const lastBrace = content.lastIndexOf('}');
 
@@ -115,15 +160,48 @@ export async function POST(req: NextRequest) {
             throw new Error('Risposta AI non valida: JSON non trovato');
         }
 
-        const jsonString = content.substring(firstBrace, lastBrace + 1);
-
+        let parsed: { results?: RawResult[] };
         try {
-            const data = JSON.parse(jsonString);
-            return NextResponse.json(data);
-        } catch (parseError) {
+            parsed = JSON.parse(content.substring(firstBrace, lastBrace + 1));
+        } catch {
             console.error('Error parsing AI response:', content);
             throw new Error('Errore nel parsing della risposta AI');
         }
+
+        const knownDishIds = new Set(dishes.map((d) => d.id));
+
+        // Validazione: solo ID allergene noti, piatti esistenti, campi coerenti tra loro
+        const results = (parsed.results ?? [])
+            .filter((r) => typeof r.dishId === 'string' && knownDishIds.has(r.dishId))
+            .map((r) => {
+                const certain = toIdList(r.allergens_certain, validIds);
+                const possible = toIdList(r.allergens_possible, validIds).filter((id) => !certain.includes(id));
+
+                let containsGluten: GlutenFlag =
+                    r.contains_gluten === true || r.contains_gluten === false ? r.contains_gluten : 'unknown';
+                if (glutenId && certain.includes(glutenId)) containsGluten = true;
+                else if (glutenId && possible.includes(glutenId)) containsGluten = 'unknown';
+
+                const confidence: Confidence =
+                    r.confidence === 'high' || r.confidence === 'medium' || r.confidence === 'low'
+                        ? r.confidence
+                        : 'medium';
+
+                const needsReview = confidence !== 'high' || possible.length > 0 || containsGluten === 'unknown';
+
+                return {
+                    dishId: r.dishId as string,
+                    dishName: typeof r.dishName === 'string' ? r.dishName : '',
+                    allergens: certain,
+                    possible_allergens: possible,
+                    contains_gluten: containsGluten,
+                    confidence: needsReview && confidence === 'high' ? 'medium' : confidence,
+                    rationale: typeof r.rationale === 'string' ? r.rationale : '',
+                    needs_review: needsReview,
+                };
+            });
+
+        return NextResponse.json({ results });
 
     } catch (error: any) {
         console.error('Error detecting allergens:', error);
