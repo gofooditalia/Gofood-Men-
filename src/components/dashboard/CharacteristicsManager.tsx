@@ -80,6 +80,21 @@ export function CharacteristicsManager({ tenantId, showIntro = true }: Character
     const glutenAllergen = allergens.find(a => a.name.toLowerCase().includes('glutine') || a.name.toLowerCase().includes('cereali'));
     const otherAllergens = allergens.filter(a => a.id !== glutenAllergen?.id);
 
+    // Converte un allergene restituito dall'AI (ID, o nome nei dati delle scansioni più vecchie) nell'ID del database
+    const resolveAllergenId = (value: string): string | undefined => {
+        const v = value.trim().toLowerCase();
+        const byId = allergens.find(a => a.id.toLowerCase() === v);
+        if (byId) return byId.id;
+        return allergens.find(a =>
+            a.name.toLowerCase().includes(v) || v.includes(a.name.toLowerCase())
+        )?.id;
+    };
+
+    const allergenLabel = (value: string) => {
+        const id = resolveAllergenId(value);
+        return allergens.find(a => a.id === id)?.name ?? value;
+    };
+
     const handleGlutenToggle = async (dish: Dish, containsGluten: boolean) => {
         const currentIds = dish.allergen_ids || [];
         let newIds = currentIds;
@@ -153,8 +168,7 @@ export function CharacteristicsManager({ tenantId, showIntro = true }: Character
         const dishesToAnalyze = validDishes.map(d => ({
             id: d.id,
             name: d.name,
-            description: d.description,
-            ingredients: d.description // Fallback
+            description: d.description
         }));
 
         // BATCHING LOGIC
@@ -196,63 +210,65 @@ export function CharacteristicsManager({ tenantId, showIntro = true }: Character
 
                     // Process Response
                     response.results.forEach(result => {
-                        const dish = dishesToAnalyze.find(d => d.name.toLowerCase() === result.dishName.toLowerCase());
+                        // Abbinamento per ID del piatto (il nome può ripetersi o essere riscritto dal modello)
+                        const dish = (result.dishId && dishesToAnalyze.find(d => d.id === result.dishId))
+                            || dishesToAnalyze.find(d => d.name.toLowerCase() === result.dishName?.toLowerCase());
                         if (!dish) return;
 
-                        resultsMap.set(dish.id, {
-                            ...result,
-                            dish_id: dish.id // Ensure dish_id is present
-                        } as any); // Type cast if needed depending on AllergenResult definition in component vs hook
-
+                        resultsMap.set(dish.id, result);
                         if (result.needs_review) toReviewCount++;
 
-                        // Auto-assign always ON
-                        {
-                            const fullDish = serverDishes.find(d => d.id === dish.id);
-                            if (!fullDish) return;
+                        const fullDish = serverDishes.find(d => d.id === dish.id);
+                        if (!fullDish) return;
 
-                            let newAllergenIds = new Set(fullDish.allergen_ids || []);
+                        const currentIds = new Set(fullDish.allergen_ids || []);
 
-                            if (result.allergens && result.allergens.length > 0) {
-                                result.allergens.forEach(detectedName => {
-                                    const matchedAllergen = allergens.find(a =>
-                                        a.name.toLowerCase().includes(detectedName.toLowerCase()) ||
-                                        detectedName.toLowerCase().includes(a.name.toLowerCase())
-                                    );
-                                    if (matchedAllergen) {
-                                        newAllergenIds.add(matchedAllergen.id);
-                                    }
-                                });
+                        // Allergeni che una scansione precedente aveva rilevato e che il ristoratore ha tolto a mano:
+                        // non vanno rimessi
+                        const removedByUser = new Set(
+                            (fullDish.ai_data?.allergens_detected || [])
+                                .map(resolveAllergenId)
+                                .filter((id): id is string => !!id && !currentIds.has(id))
+                        );
+
+                        const certainIds = (result.allergens || [])
+                            .map(resolveAllergenId)
+                            .filter((id): id is string => !!id);
+                        const possibleIds = (result.possible_allergens || [])
+                            .map(resolveAllergenId)
+                            .filter((id): id is string => !!id && !certainIds.includes(id));
+
+                        // Si aggiungono SOLO gli allergeni certi. La scansione non toglie mai allergeni già presenti.
+                        const newAllergenIds = new Set(currentIds);
+                        certainIds.forEach(id => {
+                            if (!removedByUser.has(id)) newAllergenIds.add(id);
+                        });
+
+                        const hasGluten = !!glutenAllergen && newAllergenIds.has(glutenAllergen.id);
+                        const isGlutenFree = result.contains_gluten === 'unknown'
+                            ? fullDish.is_gluten_free && !hasGluten
+                            : !hasGluten;
+
+                        batchUpdates.push({
+                            id: dish.id,
+                            tenant_id: fullDish.tenant_id,
+                            category_id: fullDish.category_id,
+                            slug: fullDish.slug,
+                            name: fullDish.name,
+                            price: fullDish.price,
+                            display_order: fullDish.display_order,
+                            allergen_ids: Array.from(newAllergenIds),
+                            is_gluten_free: isGlutenFree,
+                            ai_data: {
+                                rationale: result.rationale,
+                                confidence: result.confidence,
+                                needs_review: result.needs_review,
+                                allergens_detected: certainIds,
+                                allergens_possible: possibleIds,
+                                contains_gluten: result.contains_gluten,
+                                last_scan: new Date().toISOString()
                             }
-
-                            let isGlutenFree = fullDish.is_gluten_free;
-                            if (result.contains_gluten === true) {
-                                isGlutenFree = false;
-                                if (glutenAllergen) newAllergenIds.add(glutenAllergen.id);
-                            } else if (result.contains_gluten === false) {
-                                isGlutenFree = true;
-                                if (glutenAllergen) newAllergenIds.delete(glutenAllergen.id);
-                            }
-
-                            batchUpdates.push({
-                                id: dish.id,
-                                tenant_id: fullDish.tenant_id,
-                                category_id: fullDish.category_id,
-                                slug: fullDish.slug,
-                                name: fullDish.name,
-                                price: fullDish.price,
-                                display_order: fullDish.display_order,
-                                allergen_ids: Array.from(newAllergenIds),
-                                is_gluten_free: isGlutenFree,
-                                ai_data: {
-                                    rationale: result.rationale,
-                                    confidence: result.confidence,
-                                    needs_review: result.needs_review,
-                                    allergens_detected: result.allergens,
-                                    last_scan: new Date().toISOString()
-                                }
-                            });
-                        }
+                        });
                     });
 
                     success = true;
@@ -446,11 +462,13 @@ export function CharacteristicsManager({ tenantId, showIntro = true }: Character
                                                 confidence: activeAI.confidence,
                                                 rationale: activeAI.rationale,
                                                 allergens: activeAI.allergens,
+                                                possible: activeAI.possible_allergens || [],
                                                 isSaved: false
                                             } : (savedAI ? {
                                                 confidence: savedAI.confidence,
                                                 rationale: savedAI.rationale,
                                                 allergens: savedAI.allergens_detected || [],
+                                                possible: savedAI.allergens_possible || [],
                                                 isSaved: true
                                             } : null);
 
@@ -537,11 +555,43 @@ export function CharacteristicsManager({ tenantId, showIntro = true }: Character
                                                                                 <span className={`text-xs font-semibold mt-1 ${aiDisplay.isSaved ? 'text-gray-600' : 'text-indigo-900'}`}>Rilevati:</span>
                                                                                 {aiDisplay.allergens.map(a => (
                                                                                     <Badge key={a} variant="secondary" className={`bg-white text-xs shadow-sm ${aiDisplay.isSaved ? 'text-gray-700 border-gray-200' : 'text-indigo-700 border-indigo-100'}`}>
-                                                                                        {a}
+                                                                                        {allergenLabel(a)}
                                                                                     </Badge>
                                                                                 ))}
                                                                             </div>
                                                                         )}
+
+                                                                        {(() => {
+                                                                            // Allergeni possibili non ancora assegnati: suggerimenti da confermare con un click
+                                                                            const pending = (aiDisplay.possible || [])
+                                                                                .map(resolveAllergenId)
+                                                                                .filter((id): id is string => !!id && !dish.allergen_ids?.includes(id));
+                                                                            if (pending.length === 0) return null;
+                                                                            return (
+                                                                                <div className="flex flex-wrap items-center gap-2 pt-1">
+                                                                                    <span className="text-xs font-semibold mt-1 text-amber-800">Possibili, da verificare:</span>
+                                                                                    {pending.map(id => (
+                                                                                        <Button
+                                                                                            key={id}
+                                                                                            size="sm"
+                                                                                            variant="outline"
+                                                                                            className="h-6 text-xs border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                                                                                            title="Il piatto contiene questo allergene? Clicca per aggiungerlo"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                if (glutenAllergen && id === glutenAllergen.id) {
+                                                                                                    handleGlutenToggle(dish, true);
+                                                                                                } else {
+                                                                                                    handleAllergenChange(dish, id, true);
+                                                                                                }
+                                                                                            }}
+                                                                                        >
+                                                                                            + {allergenLabel(id)}
+                                                                                        </Button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            );
+                                                                        })()}
                                                                     </div>
                                                                 </div>
                                                             </div>
