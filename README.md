@@ -56,6 +56,8 @@ Crea un file `.env.local` con queste variabili:
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | Abbonamenti |
 | `RESEND_API_KEY` | Invio email |
 | `OPENROUTER_API_KEY` | Funzioni AI |
+| `OPENROUTER_ALLERGEN_MODEL` | Opzionale: modello OpenRouter per la scansione allergeni (predefinito `google/gemini-2.5-flash`) |
+| `OPENROUTER_IMPORT_MODEL` | Opzionale: modello OpenRouter per l'importazione piatti da foto/PDF, deve leggere immagini (predefinito `google/gemini-2.5-flash`) |
 | `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` | reCAPTCHA |
 
 ## Script

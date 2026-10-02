@@ -16,6 +16,8 @@ function getOpenAI() {
     });
 }
 
+const DEFAULT_MODEL = 'google/gemini-2.5-flash';
+
 export async function POST(req: NextRequest) {
     try {
         const supabase = await createClient();
@@ -92,8 +94,8 @@ Se un piatto non sembra appartenere a nessuna categoria specifica, assegnalo all
         ];
 
         const completion = await getOpenAI().chat.completions.create({
-            // Gemini 2.5 Flash: ~4 volte meno caro di Pro su input e output
-            model: 'google/gemini-2.5-flash',
+            // Modello configurabile da Vercel (OPENROUTER_IMPORT_MODEL); predefinito Gemini 2.5 Flash
+            model: process.env.OPENROUTER_IMPORT_MODEL || DEFAULT_MODEL,
             messages: [
                 {
                     role: 'user',
