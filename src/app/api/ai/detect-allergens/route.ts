@@ -35,12 +35,50 @@ interface RawResult {
     rationale?: unknown;
 }
 
-function toIdList(value: unknown, validIds: Set<string>): string[] {
+// Parole che il modello potrebbe usare al posto dell'ID → frammento presente nell'ID o nel nome dell'allergene
+const ALLERGEN_KEYWORDS: [string[], string][] = [
+    [['glutine', 'gluten', 'cereali', 'grano', 'frumento'], 'glutin'],
+    [['latte', 'lattosio', 'milk', 'lactose', 'formaggio', 'latticini'], 'latt'],
+    [['uova', 'uovo', 'egg', 'eggs'], 'uova'],
+    [['pesce', 'fish'], 'pesce'],
+    [['crostacei', 'crustaceans', 'gamberi'], 'crostac'],
+    [['molluschi', 'molluscs', 'mollusks'], 'mollusc'],
+    [['frutta a guscio', 'frutta secca', 'frutta-a-guscio', 'frutta_a_guscio', 'nuts', 'tree nuts'], 'frutta'],
+    [['arachidi', 'peanuts', 'peanut'], 'arachid'],
+    [['soia', 'soy', 'soya'], 'soia'],
+    [['sedano', 'celery'], 'sedano'],
+    [['senape', 'mustard'], 'senape'],
+    [['sesamo', 'sesame'], 'sesamo'],
+    [['solfiti', 'anidride solforosa', 'sulphites', 'sulfites'], 'solf'],
+    [['lupini', 'lupin', 'lupino'], 'lupin'],
+];
+
+type AllergenRow = { id: string; name: string };
+
+// Converte un valore restituito dal modello (ID, nome o sinonimo) nell'ID dell'allergene; undefined se sconosciuto
+function resolveAllergen(value: string, allergens: AllergenRow[]): string | undefined {
+    const v = value.trim().toLowerCase();
+    if (!v) return undefined;
+    const byId = allergens.find((a) => a.id.toLowerCase() === v);
+    if (byId) return byId.id.toLowerCase();
+    const byName = allergens.find((a) => a.name.toLowerCase() === v || a.name.toLowerCase().startsWith(v));
+    if (byName) return byName.id.toLowerCase();
+    const keyword = ALLERGEN_KEYWORDS.find(([words]) => words.some((w) => v === w || v.startsWith(w)))?.[1];
+    if (!keyword) return undefined;
+    return allergens
+        .find((a) => a.id.toLowerCase().includes(keyword) || a.name.toLowerCase().includes(keyword))
+        ?.id.toLowerCase();
+}
+
+function toIdList(value: unknown, allergens: AllergenRow[]): string[] {
     if (!Array.isArray(value)) return [];
-    const ids = value
-        .filter((v): v is string => typeof v === 'string')
-        .map((v) => v.trim().toLowerCase())
-        .filter((v) => validIds.has(v));
+    const ids: string[] = [];
+    for (const raw of value) {
+        if (typeof raw !== 'string') continue;
+        const id = resolveAllergen(raw, allergens);
+        if (id) ids.push(id);
+        else console.warn('[detect-allergens] Allergene non riconosciuto, scartato:', raw);
+    }
     return Array.from(new Set(ids));
 }
 
@@ -74,8 +112,7 @@ export async function POST(req: NextRequest) {
             throw new Error('Impossibile caricare l\'elenco degli allergeni');
         }
 
-        const allergenList = allergenRows as { id: string; name: string }[];
-        const validIds = new Set(allergenList.map((a) => a.id.toLowerCase()));
+        const allergenList = allergenRows as AllergenRow[];
         const glutenId = allergenList.find((a) =>
             a.id.toLowerCase().includes('glutine') || a.name.toLowerCase().includes('glutine')
         )?.id.toLowerCase();
@@ -100,7 +137,8 @@ ${JSON.stringify(dishesForPrompt, null, 2)}
 REGOLE
 1. allergens_certain: SOLO allergeni contenuti in un ingrediente scritto esplicitamente nel nome o
    nella descrizione, oppure che quell'ingrediente contiene per definizione.
-   Esempi: "pecorino", "burro", "mozzarella" → latte; "gamberi" → crostacei; "spaghetti", "pane",
+   Esempi: qualsiasi formaggio ("pecorino", "primosale", "ricotta", "mozzarella", "caciocavallo",
+   "mascarpone", "philadelphia", "formaggio"), "burro", "panna", "latte" → latte; "gamberi" → crostacei; "spaghetti", "pane",
    "farina", "pangrattato", "pinsa" → glutine; "uovo", "maionese" → uova; "vongole", "cozze" → molluschi.
 2. allergens_possible: allergeni che dipendono da una ricetta NON scritta nel menu.
    - Ricette tradizionali con varianti: NON metterli in certain, mettili in possible.
@@ -109,6 +147,9 @@ REGOLE
      Esempio: "Carbonara" senza ingredienti → certain: glutine (pasta), uova, latte (sono la
      definizione stessa del piatto); nient'altro.
    - Rischi generici (contaminazione, fritture, salse non descritte): possible, mai certain.
+   - Non dedurre allergeni da parole generiche: "verdure" non implica sedano, "salsa" non implica senape.
+   - Bevande: vino, spumante e cocktail con vino → solfiti certi; birra → glutine certo (salvo "senza glutine");
+     bibite analcoliche (cola, aranciata, chinotto, acqua, caffè) → nessun allergene, salvo ingredienti scritti.
 3. Un allergene non può stare sia in certain sia in possible.
 4. contains_gluten: true se "${glutenId ?? 'glutine'}" è in certain; "unknown" se è solo in possible;
    false solo se il piatto è chiaramente privo di glutine (es. "Bistecca ai ferri", "Insalata mista").
@@ -176,13 +217,22 @@ Rispondi SOLO con JSON in questo formato:
         const results = (parsed.results ?? [])
             .filter((r) => typeof r.dishId === 'string' && knownDishIds.has(r.dishId))
             .map((r) => {
-                const certain = toIdList(r.allergens_certain, validIds);
-                const possible = toIdList(r.allergens_possible, validIds).filter((id) => !certain.includes(id));
+                const certain = toIdList(r.allergens_certain, allergenList);
+                let possible = toIdList(r.allergens_possible, allergenList).filter((id) => !certain.includes(id));
 
                 let containsGluten: GlutenFlag =
                     r.contains_gluten === true || r.contains_gluten === false ? r.contains_gluten : 'unknown';
-                if (glutenId && certain.includes(glutenId)) containsGluten = true;
-                else if (glutenId && possible.includes(glutenId)) containsGluten = 'unknown';
+
+                if (glutenId) {
+                    // "contiene glutine: sì" vale come glutine certo anche se il modello non l'ha messo nell'elenco
+                    if (containsGluten === true && !certain.includes(glutenId)) certain.push(glutenId);
+                    if (certain.includes(glutenId)) {
+                        containsGluten = true;
+                        possible = possible.filter((id) => id !== glutenId);
+                    } else if (possible.includes(glutenId)) {
+                        containsGluten = 'unknown';
+                    }
+                }
 
                 const confidence: Confidence =
                     r.confidence === 'high' || r.confidence === 'medium' || r.confidence === 'low'
